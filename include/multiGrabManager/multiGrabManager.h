@@ -30,13 +30,17 @@ struct labeledCloud
 
 class multiGrabberManager;
 
-class cameraType
+class Camera
 {
 private:
 	// Accessor functions
-	cameraType(boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f );
-	~cameraType();
+	Camera(boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f );
+	~Camera();
 	void initalize( std::string serialNumber );
+
+	// This lets us start and stop the grabber from the manager - wrapper for pcl::Grabber functions.
+	void start();
+	void stop();
 
 	// signal ? register a callback
 	// Handles the signal connections between grabber and this class and this class and manager

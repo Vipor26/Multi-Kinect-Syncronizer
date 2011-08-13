@@ -1,7 +1,7 @@
 #include <multiGrabManager.h>
 
 //<><><> CAMERA CLASS <><><>
-cameraType::cameraType( boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f ) :
+Camera::Camera( boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f ) :
 serialNumber_(NULL),
 device_(NULL)
 {
@@ -10,12 +10,15 @@ device_(NULL)
 	//TODO set connection betwwen this and f
 	//	managerSignalConnection_
 
-	camerafunction_ = boost::bind( &cameraType::cameraCallBack, this, _1);
+	camerafunction_ = boost::bind( &Camera::cameraCallBack, this, _1);
 }
-cameraType::~cameraType()
+Camera::~Camera()
 {
+  if (device_ != NULL) {
+    delete device_;
+  }
 }
-void cameraType::initalize( std::string serialNumber )
+void Camera::initalize( std::string serialNumber )
 {
 	device_ =  new(std::nothrow) pcl::OpenNIGrabber(serialNumber.c_str());
 	//if( device_ == NULL )
@@ -26,9 +29,15 @@ void cameraType::initalize( std::string serialNumber )
 	camSignalConnection_ = device_->registerCallback( camerafunction_ );
 }
 
+void Camera::start() {
+  device_->start();
+}
 
+void Camera::stop() {
+  device_->stop();
+}
 
-void cameraType::cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud )
+void Camera::cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud )
 {
 }
 
