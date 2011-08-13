@@ -1,2 +1,0 @@
-/usr/bin/ar cr ../lib/libmultiGrabManager.a  CMakeFiles/multiGrabManager.dir/src/multiGrabManager/multiGrabManager.cpp.o
-/usr/bin/ranlib ../lib/libmultiGrabManager.a

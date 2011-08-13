@@ -1,2 +1,0 @@
-/home/vipor/workspace/multipleKinect/build/CMakeFiles/multiGrabManager.dir
-/home/vipor/workspace/multipleKinect/build/CMakeFiles/multipleKinect.dir
