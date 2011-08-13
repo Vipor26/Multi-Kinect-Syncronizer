@@ -2,6 +2,7 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <new> // for peramiter nothrow
 
 //#include <iostream> //REMOVE
 
@@ -26,16 +27,33 @@ struct labeledCloud
 //	~labeledCloud();
 	std::string serailNumber;
 };
-/*
+
+class multiGrabberManager;
+
 class cameraType
 {
-public:
-	cameraType();
-	~cameraType();
-	bool initalize( string serialNumber );
-	signal
 private:
-};*/
+	// Accessor functions
+	cameraType(boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f );
+	~cameraType();
+	void initalize( std::string serialNumber );
+
+	// signal ? register a callback
+	// Handles the signal connections between grabber and this class and this class and manager
+	boost::signals2::connection camSignalConnection_, managerSignalConnection_;
+
+	// New Labaled callback handle
+	boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> managerfunction_;
+	// Camera callback handle
+	boost::function<void (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> camerafunction_;
+
+	void cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud );
+
+	// Information about camera
+	std::string serialNumber_;
+	pcl::Grabber* device_;
+friend class multiGrabberManager;
+};
 
 class multiGrabberManager : private boost::noncopyable
 {
