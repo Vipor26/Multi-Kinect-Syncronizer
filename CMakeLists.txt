@@ -17,9 +17,11 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # Add default source files
 set(MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/multiGrabManager.cpp)
+list(APPEND MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/synchronizer.cpp)
+
 # Add default header files
 set(MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/multiGrabManager.h)
-
+list(APPEND MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/synchronizer.h)
 
 include_directories(${PROJECT_SOURCE_DIR}/include/multiGrabManager)
 
