@@ -37,5 +37,87 @@
 namespace unr_rgbd {
   namespace multikinect {
 
+
+Synchronizer::Synchronizer()
+{
+}
+Synchronizer::~Synchronizer()
+{
+}
+  
+// Called to initalize number of streams to synchronize
+void Synchronizer::initalize( unsigned numberStreams )
+{
+}
+
+// Called from manager callback
+void Synchronizer::add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
+{
+}
+
+// Register callback
+  
+  
+// Private Functions
+void Synchronizer::checkInterMessageBound()
+{
+}
+
+void Synchronizer::dequeDeleteFront( unsigned i)
+{
+}
+
+void Synchronizer::dequeMoveFrontToPast( unsigned i)
+{
+}
+
+void Synchronizer::makeCandidate()
+{
+}
+
+// moves numMessages from the i'th past vector to the i'th deque
+void Synchronizer::recover( unsigned i , size_t numMessages )
+{
+}
+  
+// moves everything from the i'th past vector to the i'th deque
+void Synchronizer::recover( unsigned i )
+{
+}
+
+//moves everthing from the past vector to the deque, and pop's the form of the deque
+void Synchronizer::recoverAndDelete( unsigned i )
+{
+}
+
+void Synchronizer::publishCandidate()
+{
+}
+
+void Synchronizer::getCandidateBoundary( uint64_t *index, uint64_t *time, bool ifEnd )
+{
+}
+
+unsigned Synchronizer::getVirtualTime( unsigned i )
+{
+}
+
+void Synchronizer::getVirtualCandidateBoundary( uint64_t *index, uint64_t *time, bool ifEnd )
+{
+}
+
+void Synchronizer::process()
+{
+}
+
+
+  // Optional Peramiters
+  //double agePenalty_;
+  //uint64_t maxDuration_;
+  //uint64_t interMessageBound_;
+  
+  // Private Member Variables
+  //vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr &> candidate_;
+
   } // multikinect
 } // unr_rgbd

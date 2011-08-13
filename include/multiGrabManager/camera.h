@@ -35,6 +35,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+// STD includes
+#include <string>
+
 // PCL includes
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>

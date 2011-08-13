@@ -34,7 +34,7 @@
 #define MULTI_GRAB_MANAGER
 
 // STD includes
-#include <string.h>
+#include <string>
 #include <vector>
 #include <map>
 #include <new> // for peramiter nothrow
