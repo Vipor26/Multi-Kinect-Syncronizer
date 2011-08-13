@@ -31,3 +31,11 @@
   @author Brian Hamilton
   @author Richard Kelley
 */
+
+#include <synchronizer.h>
+
+namespace unr_rgbd {
+  namespace multikinect {
+
+  } // multikinect
+} // unr_rgbd

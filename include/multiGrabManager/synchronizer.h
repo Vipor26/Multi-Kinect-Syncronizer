@@ -32,3 +32,18 @@
   @author Richard Kelley
 
 */
+
+#ifndef SYNCHRONIZER_H
+#define SYNCHRONIZER_H
+
+namespace unr_rgbd {
+  namespace multikinect {
+
+    // TODO
+
+  } // multikinect
+} // unr_rgbd
+
+
+
+#endif // SYNCHRONIZER_H

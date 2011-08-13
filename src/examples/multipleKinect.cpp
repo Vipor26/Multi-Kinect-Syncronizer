@@ -36,9 +36,10 @@
 #include <string>
 using namespace std;
 
-
-
 #include <multiGrabManager.h>
+
+using namespace unr_rgbd;
+using namespace multikinect;
 
 int main( int argc, char ** atgv )
 {
