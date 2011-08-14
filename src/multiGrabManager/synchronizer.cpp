@@ -39,8 +39,8 @@ namespace unr_rgbd {
   namespace multikinect {
 
 
-    Synchronizer::Synchronizer(unsigned queue_size)
-      : queue_size_(queue_size)
+    Synchronizer::Synchronizer(unsigned queueSize)
+      : queueSize_(queueSize)
       , numNonEmptyDeques_(0)
       , maxDuration_(std::numeric_limits<boost::uint64_t>::max())
       , agePenalty_(0.1)
@@ -63,6 +63,42 @@ namespace unr_rgbd {
     // Called from manager callback
     void Synchronizer::add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
     {
+      dataMutex_.lock();
+
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[streamIndex];
+      d->push_back(cloud);
+      if (d->size() == 1) {
+	++numNonEmptyDeques_;
+	if (numNonEmptyDeques_ == numStreams_) {
+	  process();
+	}
+      } else {
+	checkInterMessageBound(streamIndex);
+      }
+
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[streamIndex];
+      
+      if (d->size() + v->size() > queueSize_) {
+	numNonEmptyDeques_ = 0;
+	for (unsigned i = 0; i < numStreams_; ++i) {
+	  recover(i);
+	}
+
+	if (!d->empty()) {
+	  return;
+	}
+
+	d->pop_front();
+	hasDroppedMessages_[streamIndex] = true;
+	
+	if (hasPivot_ == true) {
+	  hasPivot_ = false;
+	  process();
+	}
+	
+      }
+      
+      dataMutex_.unlock();
     }
     
     // Register callback
@@ -81,6 +117,29 @@ namespace unr_rgbd {
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
 
+      if (d->empty()) {
+	return;
+      }
+
+      TimeStamp msg_time = d->back()->header.stamp;
+      TimeStamp previous_msg_time;
+
+      if (d->size() == 1) {
+	if (v->empty()) {
+	  return;
+	}
+	previous_msg_time = v->back()->header.stamp;
+      } else { 
+	previous_msg_time = (*d)[d->size()-2]->header.stamp;
+      }
+
+      if (msg_time < previous_msg_time) {
+	// TODO insert warning - messages out of order.
+	warnedAboutIncorrectBounds_[i] = true;
+      } else if ((msg_time - previous_msg_time) < interMessageBounds_[i]) {
+	// TODO insert warning - time bound not respected.
+	warnedAboutIncorrectBounds_[i] = true;
+      }
     }
     
     void Synchronizer::dequeDeleteFront( unsigned i)
@@ -124,11 +183,10 @@ namespace unr_rgbd {
     
     void Synchronizer::makeCandidate()
     {
-      
-      // create candidate tuple
-      
-      // delete all past messages
-      
+      for (unsigned i = 0; i < numStreams_; ++i) {
+	candidate_[i] = deques_[i].front();
+	histories_[i].clear();
+      }
     }
     
     // moves numMessages from the i'th past vector to the i'th deque

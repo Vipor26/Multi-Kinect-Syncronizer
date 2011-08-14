@@ -69,7 +69,7 @@ namespace unr_rgbd {
 class Synchronizer : private boost::noncopyable
 {
  public:
-  Synchronizer(unsigned queue_size = 5);
+  Synchronizer(unsigned queueSize = 5);
   ~Synchronizer();
   
   // Called to initalize number of streams to synchronize
@@ -107,7 +107,7 @@ class Synchronizer : private boost::noncopyable
   // Optional Peramiters
   double agePenalty_;
   Duration maxDuration_;
-  vector<Duration> interMessageBounds_;
+
   
   // Private Member Variables
   bool hasPivot_;
@@ -122,12 +122,14 @@ class Synchronizer : private boost::noncopyable
   
   unsigned numNonEmptyDeques_;
   vector<bool> hasDroppedMessages_;
+  vector<Duration> interMessageBounds_;
   vector<bool> warnedAboutIncorrectBounds_;
   vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
   vector<deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > deques_;
   vector<vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > histories_;
 
-  unsigned queue_size_;
+
+  unsigned queueSize_;
   
   // Private Functions
   void checkInterMessageBound(unsigned i);
