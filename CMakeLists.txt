@@ -37,6 +37,10 @@ IF(BUILD_EXAMPLES)
     # Link the Test program to the Serial library
     target_link_libraries(multipleKinect multiGrabManager)
     target_link_libraries(multipleKinect ${PCL_LIBRARIES})
+    
+    #compile the test program
+    add_executable(principleTest ${PROJECT_SOURCE_DIR}/src/examples/principleDemo.cpp)
+    target_link_libraries(principleTest ${PCL_LIBRARIES})
 ENDIF(BUILD_EXAMPLES)
 
 

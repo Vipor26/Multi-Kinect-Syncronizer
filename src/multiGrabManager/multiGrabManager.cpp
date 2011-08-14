@@ -36,10 +36,29 @@ namespace unr_rgbd {
   namespace multikinect {
 
     // Constructor
-    multiGrabberManager::multiGrabberManager()
+    multiGrabberManager::multiGrabberManager() : updateThreadRunning(false)
     {
-      // Set up update thread variables
-      updateThreadRunning = false;
+      using std::vector;
+      using std::string;
+      
+      //main driver refrence variable
+      openni_wrapper::OpenNIDriver& driver = openni_wrapper::OpenNIDriver::getInstance();
+      
+      // all other variables
+      unsigned devIter, curNumberDevices;
+      vector< string > curSerialList;
+      
+      try	{
+        curNumberDevices = driver.updateDeviceList();
+	      for( devIter=0; devIter<curNumberDevices; devIter++ )
+	      {
+		      curSerialList.push_back( string( driver.getSerialNumber(devIter) ) );
+	      }
+	    }
+	    catch( ... ) {
+	    }
+      allSerialNumbers = curSerialList;
+
 
       // Start update thread
       startUpdateThread();
