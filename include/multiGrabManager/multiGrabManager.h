@@ -71,50 +71,52 @@ namespace unr_rgbd {
     };
     
     class multiGrabberManager : private boost::noncopyable
-      {
-      public:
-	// Constructor Destructor
-	multiGrabberManager();
-	~multiGrabberManager();
+    {
+     public:
+	    // Constructor Destructor
+	    multiGrabberManager();
+	    ~multiGrabberManager();
 	
-	// available serial numbers
-	std::vector<std::string> getAvailableSerialNumbers();
+	    // available serial numbers
+	    std::vector<std::string> getAvailableSerialNumbers();
 	
-	// if nonSpecified will connect to all available
-	void connect( std::vector<std::string> = std::vector<std::string>() ); //NOTCOMPLETE
+	    // if nonSpecified will connect to all available
+	    void connect( std::vector<std::string> = std::vector<std::string>() ); //NOTCOMPLETE
 	
-	// functions to start stop the selected camera streams
-	//void startSelected();
-	//void stopSelected();
+	    // functions to start stop the selected camera streams
+	    //void startSelected();
+	    //void stopSelected();
 	
-	// Polled functions
-	//bool newDataAvailable();
-	//vector<labeledCloud> getData();
+	    // Polled functions
+	    //bool newDataAvailable();
+	    //vector<labeledCloud> getData();
 	
-	// callback functions
-	// unsigned addCallback( const ??? callback );
-	//returns the number of callbacks, and return -1 is callback index 
-	//void removeCallback( unsigned i );
-      private:
+	    // callback functions
+	    // unsigned addCallback( const ??? callback );
+	    //returns the number of callbacks, and return -1 is callback index 
+	    //void removeCallback( unsigned i );
+     private:
 	
-	// Connected Cammera peramiters
-	std::map< std::string, pcl::Grabber* > connectedDevices;
-	boost::bimap< std::string, unsigned > serialIndexBiMap;
+	    // Connected Cammera peramiters
+	    std::map< std::string, pcl::Grabber* > connectedDevices;
+	    boost::bimap< std::string, unsigned > serialIndexBiMap;
 
 
-	// Thread peramiters
-	bool updateThreadRunning;
-	boost::thread deviceUpdateThread;
-	std::vector< std::string > allSerialNumbers;
-	boost::signals2::mutex allSerialNumbersMutex;
+	    // Thread peramiters
+	    bool updateThreadRunning;
+	    boost::thread deviceUpdateThread;
+	    std::vector< std::string > allSerialNumbers;
+	    boost::signals2::mutex allSerialNumbersMutex;
 
-
-	// Private Member functions
-	void startUpdateThread();
-	void stopUpdateThread();
-	void updateThread();
-      };
-    
+      // Private Member functions
+      std::vector< std::string > getConnectedDeviceSerialNumbers();
+  
+	    // Thread Private Member functions
+	    void startUpdateThread();
+	    void stopUpdateThread();
+	    void updateThread();
+    };
+      
   } // multikinect
 } // unr_rgbd
 

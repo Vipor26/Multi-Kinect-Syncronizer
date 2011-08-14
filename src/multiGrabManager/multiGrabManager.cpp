@@ -41,24 +41,7 @@ namespace unr_rgbd {
       using std::vector;
       using std::string;
       
-      //main driver refrence variable
-      openni_wrapper::OpenNIDriver& driver = openni_wrapper::OpenNIDriver::getInstance();
-      
-      // all other variables
-      unsigned devIter, curNumberDevices;
-      vector< string > curSerialList;
-      
-      try	{
-        curNumberDevices = driver.updateDeviceList();
-	      for( devIter=0; devIter<curNumberDevices; devIter++ )
-	      {
-		      curSerialList.push_back( string( driver.getSerialNumber(devIter) ) );
-	      }
-	    }
-	    catch( ... ) {
-	    }
-      allSerialNumbers = curSerialList;
-
+      allSerialNumbers = getConnectedDeviceSerialNumbers();
 
       // Start update thread
       startUpdateThread();
@@ -97,56 +80,69 @@ namespace unr_rgbd {
     }
     
 
-    // <><><>    Private Member Functions    <><><>
+// <><><>    Private Member Functions    <><><>
+std::vector< std::string > multiGrabberManager::getConnectedDeviceSerialNumbers()
+{
+  using std::vector;
+  using std::string;
+  
+  //PCL Drivers variables      
+  openni_wrapper::OpenNIDriver& driver = openni_wrapper::OpenNIDriver::getInstance();
+      
+  // all other variables
+  unsigned devIter, curNumberDevices;
+  vector< string > curSerialList;
+  
+  try	{
+    curNumberDevices = driver.updateDeviceList();
+    for( devIter=0; devIter<curNumberDevices; devIter++ )
+    {
+	    curSerialList.push_back( string( driver.getSerialNumber(devIter) ) );
+    }
+  }
+  catch( ... ) {
+  }
+  return curSerialList;
+}
     
-    // Thread Functions
-    void multiGrabberManager::startUpdateThread()
-    {
-      if( !updateThreadRunning )
-	{
-	  updateThreadRunning = true;
-	  deviceUpdateThread = boost::thread(&multiGrabberManager::updateThread, this );
-	}
-    }
-    void multiGrabberManager::stopUpdateThread()
-    {
-      if( updateThreadRunning )
-	{
-	  updateThreadRunning = false;
-	  deviceUpdateThread.join();
-	}
-    }
+    
+// Thread Functions
+void multiGrabberManager::startUpdateThread()
+{
+  if( !updateThreadRunning )
+  {
+    updateThreadRunning = true;
+    deviceUpdateThread = boost::thread(&multiGrabberManager::updateThread, this );
+  }
+}
+void multiGrabberManager::stopUpdateThread()
+{
+  if( updateThreadRunning )
+  {
+    updateThreadRunning = false;
+    deviceUpdateThread.join();
+  }
+}
 
-    void multiGrabberManager::updateThread()
-    {
-      using std::vector;
-      using std::string;
-      //PCL Drivers variables
-      openni_wrapper::OpenNIDriver& driver = openni_wrapper::OpenNIDriver::getInstance();
+void multiGrabberManager::updateThread()
+{
+  using std::vector;
+  using std::string;
+
+  //Boost sleep variable
+  boost::posix_time::seconds sleepPeriod(1);  // wait for 1 sec
+  
+  // all other variables  
+  vector< string > curSerialList;
       
-      //Boost sleep variable
-      boost::posix_time::seconds sleepPeriod(1);  // wait for 1 sec
-      
-      // all other variables
-      unsigned devIter, curNumberDevices;
-      vector< string > curSerialList;
-      while( updateThreadRunning )
+  while( updateThreadRunning )
 	{
-	  curSerialList.clear();
-	  try	{
-	    curNumberDevices = driver.updateDeviceList();
-	    for( devIter=0; devIter<curNumberDevices; devIter++ )
-	      {
-		curSerialList.push_back( string( driver.getSerialNumber(devIter) ) );
-	      }
-	  }
-	  catch( ... ) { //openni_wrapper::OpenNIException E)	{
-	    // no cameras connected
-	    curNumberDevices = 0;
-	  }
-	  //cout << curNumberDevices << endl; //REMOVE
+	  // Command is blocking for x period of time
+	  curSerialList = getConnectedDeviceSerialNumbers();
 	  
+	  // because previous command is blocking
 	  if( updateThreadRunning )	{
+	  
 	    allSerialNumbersMutex.lock();
 	    allSerialNumbers = curSerialList;
 	    allSerialNumbersMutex.unlock();

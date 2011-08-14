@@ -46,9 +46,8 @@ int main( int argc, char ** atgv )
 	cout << endl;
 	cout << "Welcome to the multiple kinect class tester" << endl;
 
+  cout << "\tInitalizing (please wait)" << endl;
 	multiGrabberManager masterInterface;
-	cout << "Running update Test Press enter to cont. " << endl;	
-	cin.get();
 	
 	vector<string> connectedCameras = masterInterface.getAvailableSerialNumbers();
 
