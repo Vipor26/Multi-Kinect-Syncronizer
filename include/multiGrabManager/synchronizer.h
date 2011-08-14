@@ -36,11 +36,11 @@
 #ifndef SYNCHRONIZER_H
 #define SYNCHRONIZER_H
 
-
 // STD includes
 #include <string>
 #include <vector>
 #include <deque>
+#include <limits>
     
 //#include <iostream> //REMOVE
     
@@ -50,7 +50,7 @@
     
 // Boost Includes
 #include <boost/thread.hpp>
-#include <boost/cstdint.hpp> // for uint64_t_t
+#include <boost/cstdint.hpp> // for uint64_t
 #include <boost/date_time.hpp> // for thread sleep
 #include <boost/noncopyable.hpp> // to make class not copiable
 #include <boost/signals2/mutex.hpp>
@@ -67,9 +67,8 @@ namespace unr_rgbd {
   
 class Synchronizer : private boost::noncopyable
 {
-  
  public:
-  Synchronizer();
+  Synchronizer(unsigned queue_size = 5);
   ~Synchronizer();
   
   // Called to initalize number of streams to synchronize
@@ -103,6 +102,7 @@ class Synchronizer : private boost::noncopyable
   }
   
  private:
+  
   // Optional Peramiters
   double agePenalty_;
   Duration maxDuration_;
@@ -110,7 +110,8 @@ class Synchronizer : private boost::noncopyable
   
   // Private Member Variables
   bool hasPivot_;
-  unsigned pivotIndex;
+  unsigned pivotIndex_;
+  unsigned numStreams_;
   TimeStamp pivotTime_;
   
   boost::mutex dataMutex_;
@@ -124,6 +125,8 @@ class Synchronizer : private boost::noncopyable
   vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
   vector<deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > deques_;
   vector<vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > histories_;
+
+  unsigned queue_size_;
   
   // Private Functions
   void checkInterMessageBound(unsigned i);

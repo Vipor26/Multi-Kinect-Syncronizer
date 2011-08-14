@@ -38,89 +38,196 @@ namespace unr_rgbd {
   namespace multikinect {
 
 
-Synchronizer::Synchronizer()
-{
-}
-Synchronizer::~Synchronizer()
-{
-}
-  
-// Called to initalize number of streams to synchronize
-void Synchronizer::initalize( unsigned numberStreams )
-{
-}
+    Synchronizer::Synchronizer(unsigned queue_size)
+      : queue_size_(queue_size)
+      , numNonEmptyDeques_(0)
+      , maxDuration_(std::numeric_limits<boost::uint64_t>::max())
+      , agePenalty_(0.1)
+      , pivotIndex_(0)
+      , hasPivot_(false)
+      , numStreams_(0)
+    {
+      // TODO FINISH INITIALIZERS
+      // TODO assert queueSize > 0
+    }
+    Synchronizer::~Synchronizer()
+    {
+    }
+    
+    // Called to initalize number of streams to synchronize
+    void Synchronizer::initalize( unsigned numberStreams )
+    {
+    }
+    
+    // Called from manager callback
+    void Synchronizer::add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
+    {
+    }
+    
+    // Register callback
+    void Synchronizer::registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f )
+    {
+      
+    }
+    
+    // Private Functions
+    void Synchronizer::checkInterMessageBound( unsigned i )
+    {
+      if( ( i > numStreams_ ) || ( warnedAboutIncorrectBounds_[i] ) ) {
+	return;
+      }
 
-// Called from manager callback
-void Synchronizer::add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
-{
-}
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
 
-// Register callback
-void Synchronizer::registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f )
-{
-
-}
-  
-// Private Functions
-void Synchronizer::checkInterMessageBound( unsigned i )
-{
-}
-
-void Synchronizer::dequeDeleteFront( unsigned i)
-{
-}
-
-void Synchronizer::dequeMoveFrontToPast( unsigned i)
-{
-}
-
-void Synchronizer::makeCandidate()
-{
-}
-
-// moves numMessages from the i'th past vector to the i'th deque
-void Synchronizer::recover( unsigned i , size_t numMessages )
-{
-}
-  
-// moves everything from the i'th past vector to the i'th deque
-void Synchronizer::recover( unsigned i )
-{
-}
-
-//moves everthing from the past vector to the deque, and pop's the form of the deque
-void Synchronizer::recoverAndDelete( unsigned i )
-{
-}
-
-void Synchronizer::publishCandidate()
-{
-}
-
-void Synchronizer::getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
-{
-}
-
-unsigned Synchronizer::getVirtualTime( unsigned i )
-{
-}
-
-void Synchronizer::getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
-{
-}
-
-void Synchronizer::process()
-{
-}
-
-
-  // Optional Peramiters
-  //double agePenalty_;
-  //uint64_t maxDuration_;
-  //uint64_t interMessageBound_;
-  
-  // Private Member Variables
-  //vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr &> candidate_;
-
+    }
+    
+    void Synchronizer::dequeDeleteFront( unsigned i)
+    {
+      if (i > deques_.size()) {
+	return;
+      }
+      
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d =  &deques_[i];
+      
+      if (d->empty()) {
+	return;
+      }
+      
+      d->pop_front();
+      
+      if (d->empty()) {
+	--numNonEmptyDeques_;
+      }      
+    }
+    
+    void Synchronizer::dequeMoveFrontToPast( unsigned i)
+    {
+      if (i > deques_.size()) {
+	return;
+      }
+      
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
+      
+      if (d->empty()) {
+	return;
+      }
+      
+      v->push_back(d->front());
+      d->pop_front();
+      if (d->empty()) {
+	--numNonEmptyDeques_;
+      }
+    }
+    
+    void Synchronizer::makeCandidate()
+    {
+      
+      // create candidate tuple
+      
+      // delete all past messages
+      
+    }
+    
+    // moves numMessages from the i'th past vector to the i'th deque
+    // precondition: i-th deque is nonempty.
+    void Synchronizer::recover( unsigned i , size_t numMessages )
+    {
+      if (i > deques_.size()) {
+	return;
+      }
+      
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
+      
+      if (numMessages > v->size()) {
+	return;
+      }
+      
+      while(numMessages > 0) {
+	d->push_front(v->back());
+	v->pop_back();
+	--numMessages;
+      }
+      
+      if (!d->empty()) {
+	++numNonEmptyDeques_;
+      }
+    }
+    
+    // moves everything from the i'th past vector to the i'th deque
+    // precondition: i-th deque is nonempty.
+    void Synchronizer::recover( unsigned i )
+    {
+      
+      if (i > deques_.size()) {
+	return;
+      }
+      
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* d = &deques_[i];
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* v = &histories_[i];
+      
+      while(!v->empty()) {
+	d->push_front(v->back());
+	v->pop_back();
+      }
+      
+      if (!d->empty()) {
+	++numNonEmptyDeques_;
+      }      
+    }
+    
+    //moves everthing from the past vector to the deque, and pop's the form of the deque
+    // precondition: i-th deque is nonempty.
+    void Synchronizer::recoverAndDelete( unsigned i )
+    {
+      if (i > deques_.size()) {
+	return;
+      }
+      
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* d = &deques_[i];
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* v = &histories_[i];
+      
+      while(!v->empty()) {
+	d->push_front(v->back());
+	v->pop_back();
+      }
+      
+      if (d->empty()) {
+	return;
+      }
+      
+      d->pop_front();
+      if(!d->empty()) {
+	++numNonEmptyDeques_;
+      }
+      
+    }
+    void Synchronizer::publishCandidate()
+    {
+      
+    }
+    
+    void Synchronizer::getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
+    {
+      
+    }
+    
+    unsigned Synchronizer::getVirtualTime( unsigned i )
+    {
+      
+    }
+    
+    void Synchronizer::getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
+    {
+      
+    }
+    
+    void Synchronizer::process()
+    {
+      
+    }
+    
   } // multikinect
 } // unr_rgbd
