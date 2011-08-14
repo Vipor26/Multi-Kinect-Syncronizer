@@ -31,7 +31,6 @@
 
 #include <stdlib.h>
 #include <iostream>
-
 #include <vector>
 #include <string>
 using namespace std;
@@ -40,6 +39,34 @@ using namespace std;
 
 using namespace unr_rgbd;
 using namespace multikinect;
+
+#include <pcl/visualization/pcl_visualizer.h>
+
+boost::shared_ptr<pcl::visualization::PCLVisualizer> createViewer (std::vector<labeledCloud> &clouds )
+{
+  boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new  
+                                      pcl::visualization::PCLVisualizer ("Multi Cloud Viewer"));
+  viewer->initCameraParameters ();
+  
+  int i, numC = (int)clouds.size();
+  
+  for( i=0; i< numC; i++ )
+  {
+    viewer->createViewPort(0.0, 0.0, 0.5, 1.0, i);
+    viewer->setBackgroundColor (0, 0, 0, i);
+    //viewer->addText(clouds[i].serialNumber, i);
+    
+    //pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(clouds[i].cloud);
+    //viewer->addPointCloud<pcl::PointXYZRGB> (clouds[i].cloud, rgb, clouds[i].serialNumber, i);
+  }
+}
+/*
+while (!viewer->wasStopped ())
+{
+  viewer->spinOnce (100);
+  boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+}
+*/
 
 int main( int argc, char ** atgv )
 {

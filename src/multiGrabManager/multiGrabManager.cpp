@@ -71,86 +71,88 @@ namespace unr_rgbd {
     
     void multiGrabberManager::connect( std::vector<std::string> serial_list )
     {
-      if( serial_list.size() == 0 ) // empty so use all
-	serial_list = getAvailableSerialNumbers();
+      if( serial_list.size() == 0 ) { // empty so use all
+	      serial_list = getAvailableSerialNumbers();
+	    }
       else
-	{ // check to make sure the requested are available
-	  
-	}
+	    { // check to make sure the requested are available
+	      //TODO: create vector of cameras, note sycronizer needs a clean up
+	      //        if user decieds to change there mind and re runs this functions
+	    }
     }
     
 
-// <><><>    Private Member Functions    <><><>
-std::vector< std::string > multiGrabberManager::getConnectedDeviceSerialNumbers()
-{
-  using std::vector;
-  using std::string;
-  
-  //PCL Drivers variables      
-  openni_wrapper::OpenNIDriver& driver = openni_wrapper::OpenNIDriver::getInstance();
-      
-  // all other variables
-  unsigned devIter, curNumberDevices;
-  vector< string > curSerialList;
-  
-  try	{
-    curNumberDevices = driver.updateDeviceList();
-    for( devIter=0; devIter<curNumberDevices; devIter++ )
+    // <><><>    Private Member Functions    <><><>
+    std::vector< std::string > multiGrabberManager::getConnectedDeviceSerialNumbers()
     {
-	    curSerialList.push_back( string( driver.getSerialNumber(devIter) ) );
-    }
-  }
-  catch( ... ) {
-  }
-  return curSerialList;
-}
-    
-    
-// Thread Functions
-void multiGrabberManager::startUpdateThread()
-{
-  if( !updateThreadRunning )
-  {
-    updateThreadRunning = true;
-    deviceUpdateThread = boost::thread(&multiGrabberManager::updateThread, this );
-  }
-}
-void multiGrabberManager::stopUpdateThread()
-{
-  if( updateThreadRunning )
-  {
-    updateThreadRunning = false;
-    deviceUpdateThread.join();
-  }
-}
-
-void multiGrabberManager::updateThread()
-{
-  using std::vector;
-  using std::string;
-
-  //Boost sleep variable
-  boost::posix_time::seconds sleepPeriod(1);  // wait for 1 sec
-  
-  // all other variables  
-  vector< string > curSerialList;
+      using std::vector;
+      using std::string;
       
-  while( updateThreadRunning )
-	{
-	  // Command is blocking for x period of time
-	  curSerialList = getConnectedDeviceSerialNumbers();
-	  
-	  // because previous command is blocking
-	  if( updateThreadRunning )	{
-	  
-	    allSerialNumbersMutex.lock();
-	    allSerialNumbers = curSerialList;
-	    allSerialNumbersMutex.unlock();
-	    
-	    // sleep for (construct val) seconds
-	    boost::this_thread::sleep(sleepPeriod);
-	  }
-	}
+      //PCL Drivers variables      
+      openni_wrapper::OpenNIDriver& driver = openni_wrapper::OpenNIDriver::getInstance();
+          
+      // all other variables
+      unsigned devIter, curNumberDevices;
+      vector< string > curSerialList;
+      
+      try	{
+        curNumberDevices = driver.updateDeviceList();
+        for( devIter=0; devIter<curNumberDevices; devIter++ )
+        {
+	        curSerialList.push_back( string( driver.getSerialNumber(devIter) ) );
+        }
+      }
+      catch( ... ) {
+      }
+      return curSerialList;
+    }
+    
+    
+    // Thread Functions
+    void multiGrabberManager::startUpdateThread()
+    {
+      if( !updateThreadRunning )
+      {
+        updateThreadRunning = true;
+        deviceUpdateThread = boost::thread(&multiGrabberManager::updateThread, this );
+      }
+    }
+    void multiGrabberManager::stopUpdateThread()
+    {
+      if( updateThreadRunning )
+      {
+        updateThreadRunning = false;
+        deviceUpdateThread.join();
+      }
+    }
+
+    void multiGrabberManager::updateThread()
+    {
+      using std::vector;
+      using std::string;
+
+      //Boost sleep variable
+      boost::posix_time::seconds sleepPeriod(1);  // wait for 1 sec
+      
+      // all other variables  
+      vector< string > curSerialList;
+          
+      while( updateThreadRunning )
+	    {
+	      // Command is blocking for x period of time
+	      curSerialList = getConnectedDeviceSerialNumbers();
+	      
+	      // because previous command is blocking
+	      if( updateThreadRunning )	{
+	      
+	        allSerialNumbersMutex.lock();
+	        allSerialNumbers = curSerialList;
+	        allSerialNumbersMutex.unlock();
+	        
+	        // sleep for (construct val) seconds
+	        boost::this_thread::sleep(sleepPeriod);
+	      }
+	    }
     }
   } // multikinect
 } // unr_rgbd
