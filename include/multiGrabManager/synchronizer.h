@@ -62,6 +62,9 @@ using std::deque;
 namespace unr_rgbd {
   namespace multikinect {
 
+    typedef uint64_t TimeStamp;
+    typedef uint64_t Duration;
+  
 class Synchronizer : private boost::noncopyable
 {
   
@@ -76,7 +79,7 @@ class Synchronizer : private boost::noncopyable
   void add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud );
 
   // Register callback
-
+  void registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f ); 
   // Accessors
   void setAgePenalty( double age ) {
     agePenalty_ = age;
@@ -85,32 +88,45 @@ class Synchronizer : private boost::noncopyable
     return agePenalty_;
   }
   
-  void setMaxDuration( uint64_t duration ) {
+  void setMaxDuration( Duration duration ) {
     maxDuration_ = duration;
   }
-  uint64_t getMaxDuration() {
+  Duration getMaxDuration() {
     return maxDuration_;
   }
   
-  void setInterMessageBound( uint64_t bound ) {
-    interMessageBound_ = bound;
+  void setInterMessageBound( unsigned i, Duration bound ) {
+    interMessageBounds_[i] = bound;
   }
-  uint64_t getInterMessageBound() {
-    return interMessageBound_;
+  uint64_t getInterMessageBound(unsigned i) {
+    return interMessageBounds_[i];
   }
   
  private:
   // Optional Peramiters
   double agePenalty_;
-  uint64_t maxDuration_;
-  uint64_t interMessageBound_;
+  Duration maxDuration_;
+  vector<Duration> interMessageBounds_;
   
   // Private Member Variables
-  vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
+  bool hasPivot_;
+  unsigned pivotIndex;
+  TimeStamp pivotTime_;
   
+  boost::mutex dataMutex_;
+  
+  TimeStamp candidateEnd_;
+  TimeStamp candidateStart_;
+  
+  unsigned numNonEmptyDeques_;
+  vector<bool> hasDroppedMessages_;
+  vector<bool> warnedAboutIncorrectBounds_;
+  vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
+  vector<deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > deques_;
+  vector<vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > histories_;
   
   // Private Functions
-  void checkInterMessageBound();
+  void checkInterMessageBound(unsigned i);
   void dequeDeleteFront( unsigned i);
   void dequeMoveFrontToPast( unsigned i);
   void makeCandidate();
@@ -118,22 +134,22 @@ class Synchronizer : private boost::noncopyable
   void recover( unsigned i ); // moves everything from the i'th past vector to the i'th deque
   void recoverAndDelete( unsigned i ); //moves everthing from the past vector to the deque, and pop's the form of the deque
   void publishCandidate();
-  void getCandidateStart( uint64_t *startIndex, uint64_t *startTime ) {
+  void getCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
     return getCandidateBoundary( startIndex, startTime, false );
   }
-  void getCandidateEnd( uint64_t *endIndex, uint64_t *endTime ) {
+  void getCandidateEnd( unsigned *endIndex, TimeStamp *endTime ) {
     return getCandidateBoundary( endIndex, endTime, true );
   }
-  void getCandidateBoundary( uint64_t *index, uint64_t *time, bool ifEnd );
+  void getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
 
   unsigned getVirtualTime( unsigned i );
-  void getVirtualCandidateStart( uint64_t *startIndex, uint64_t *startTime ) {
+  void getVirtualCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
     return getVirtualCandidateBoundary( startIndex, startTime, false );
   }
-  void getVirtualCandidateEnd( uint64_t *endIndex, uint64_t *endTime ) {
+  void getVirtualCandidateEnd( unsigned *endIndex, TimeStamp *endTime ) {
     return getVirtualCandidateBoundary( endIndex, endTime, true );
   }
-  void getVirtualCandidateBoundary( uint64_t *index, uint64_t *time, bool ifEnd );
+  void getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
   void process();
 };
 

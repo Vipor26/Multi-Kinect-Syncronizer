@@ -59,12 +59,13 @@ int main( int argc, char ** atgv )
 		cout << "Error: no cameras connected :(" << endl;
 		return EXIT_SUCCESS;
 	}
+
 	for(unsigned i=0; i<connectedCameras.size(); i++ )
 	{
 		cout << "\tCamera " << i << ": " << connectedCameras[i] << endl;
 	}
 
-	masterInterface.connect();
+	//masterInterface.connect();
 
 	cout << "Tester is exiting" << endl;
 	cout << endl;

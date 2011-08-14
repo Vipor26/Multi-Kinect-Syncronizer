@@ -56,10 +56,13 @@ void Synchronizer::add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>:
 }
 
 // Register callback
-  
+void Synchronizer::registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f )
+{
+
+}
   
 // Private Functions
-void Synchronizer::checkInterMessageBound()
+void Synchronizer::checkInterMessageBound( unsigned i )
 {
 }
 
@@ -94,7 +97,7 @@ void Synchronizer::publishCandidate()
 {
 }
 
-void Synchronizer::getCandidateBoundary( uint64_t *index, uint64_t *time, bool ifEnd )
+void Synchronizer::getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
 {
 }
 
@@ -102,7 +105,7 @@ unsigned Synchronizer::getVirtualTime( unsigned i )
 {
 }
 
-void Synchronizer::getVirtualCandidateBoundary( uint64_t *index, uint64_t *time, bool ifEnd )
+void Synchronizer::getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
 {
 }
 

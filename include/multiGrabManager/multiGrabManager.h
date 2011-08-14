@@ -49,6 +49,7 @@
 #include <pcl/io/openni_camera/openni_exception.h>
     
 // Boost Includes
+#include <boost/bimap.hpp>
 #include <boost/thread.hpp>
 #include <boost/date_time.hpp> // for thread sleep
 #include <boost/noncopyable.hpp> // to make class not copiable
@@ -98,7 +99,7 @@ namespace unr_rgbd {
 	
 	// Connected Cammera peramiters
 	std::map< std::string, pcl::Grabber* > connectedDevices;
-	//	map< string, ??? > clouds;
+	boost::bimap< std::string, unsigned > serialIndexBiMap;
 
 
 	// Thread peramiters
