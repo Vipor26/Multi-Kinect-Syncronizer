@@ -66,97 +66,96 @@ namespace unr_rgbd {
     typedef uint64_t TimeStamp;
     typedef uint64_t Duration;
   
-class Synchronizer : private boost::noncopyable
-{
- public:
-  Synchronizer(unsigned queueSize = 5);
-  ~Synchronizer();
-  
-  // Called to initalize number of streams to synchronize
-  void initalize( unsigned numberStreams );
+    class Synchronizer : private boost::noncopyable
+    {
+     public:
+      Synchronizer(unsigned queueSize = 5);
+      ~Synchronizer();
+      
+      // Called to initalize number of streams to synchronize
+      void initalize( unsigned numberStreams );
 
-  // Called from manager callback
-  void add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud );
+      // Called from manager callback
+      void add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud );
 
-  // Register callback
-  void registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f ); 
-  // Accessors
-  void setAgePenalty( double age ) {
-    agePenalty_ = age;
-  }
-  double getAgePenalty() {
-    return agePenalty_;
-  }
-  
-  void setMaxDuration( Duration duration ) {
-    maxDuration_ = duration;
-  }
-  Duration getMaxDuration() {
-    return maxDuration_;
-  }
-  
-  void setInterMessageBound( unsigned i, Duration bound ) {
-    interMessageBounds_[i] = bound;
-  }
-  uint64_t getInterMessageBound(unsigned i) {
-    return interMessageBounds_[i];
-  }
-  
- private:
-  
-  // Optional Peramiters
-  double agePenalty_;
-  Duration maxDuration_;
-  vector<Duration> interMessageBounds_;
+      // Register callback
+      void registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f ); 
+      
+      // Accessors
+      void setAgePenalty( double age ) {
+        agePenalty_ = age;
+      }
+      double getAgePenalty() {
+        return agePenalty_;
+      }
+      
+      void setMaxDuration( Duration duration ) {
+        maxDuration_ = duration;
+      }
+      Duration getMaxDuration() {
+        return maxDuration_;
+      }
+      
+      void setInterMessageBound( unsigned i, Duration bound ) {
+        interMessageBounds_[i] = bound;
+      }
+      uint64_t getInterMessageBound(unsigned i) {
+        return interMessageBounds_[i];
+      }
+      
+     private:
+      
+      // Optional Peramiters
+      double agePenalty_;
+      Duration maxDuration_;
+      vector<Duration> interMessageBounds_;
 
-  
-  // Private Member Variables
-  bool hasPivot_;
-  unsigned queueSize_;
-  unsigned pivotIndex_;
-  unsigned numStreams_;
-  unsigned numNonEmptyDeques_;
-  
-  boost::mutex dataMutex_;
-  
-  TimeStamp pivotTime_;
-  TimeStamp candidateEnd_;
-  TimeStamp candidateStart_;
-  
-  vector<bool> hasDroppedMessages_;
-  vector<bool> warnedAboutIncorrectBounds_;
-  vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
-  vector<deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > deques_;
-  vector<vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > histories_;
+      // Private Member Variables
+      bool hasPivot_;
+      unsigned queueSize_;
+      unsigned pivotIndex_;
+      unsigned numStreams_;
+      unsigned numNonEmptyDeques_;
+      
+      boost::mutex dataMutex_;
+      
+      TimeStamp pivotTime_;
+      TimeStamp candidateEnd_;
+      TimeStamp candidateStart_;
+      
+      vector<bool> hasDroppedMessages_;
+      vector<bool> warnedAboutIncorrectBounds_;
+      vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
+      vector<deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > deques_;
+      vector<vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > histories_;
 
+      // Private Functions
+      void checkInterMessageBound(unsigned i);
+      void dequeDeleteFront( unsigned i);
+      void dequeMoveFrontToPast( unsigned i);
+      void makeCandidate();
+      void recover( unsigned i , size_t numMessages );  // moves numMessages from the i'th past vector to the i'th deque
+      void recover( unsigned i ); // moves everything from the i'th past vector to the i'th deque
+      void recoverAndDelete( unsigned i ); //moves everthing from the past vector to the deque, and pop's the form of the deque
+      void publishCandidate();
+      void getCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
+        return getCandidateBoundary( startIndex, startTime, false );
+      }
+      void getCandidateEnd( unsigned *endIndex, TimeStamp *endTime ) {
+        return getCandidateBoundary( endIndex, endTime, true );
+      }
+      void getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
 
-  // Private Functions
-  void checkInterMessageBound(unsigned i);
-  void dequeDeleteFront( unsigned i);
-  void dequeMoveFrontToPast( unsigned i);
-  void makeCandidate();
-  void recover( unsigned i , size_t numMessages );  // moves numMessages from the i'th past vector to the i'th deque
-  void recover( unsigned i ); // moves everything from the i'th past vector to the i'th deque
-  void recoverAndDelete( unsigned i ); //moves everthing from the past vector to the deque, and pop's the form of the deque
-  void publishCandidate();
-  void getCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
-    return getCandidateBoundary( startIndex, startTime, false );
-  }
-  void getCandidateEnd( unsigned *endIndex, TimeStamp *endTime ) {
-    return getCandidateBoundary( endIndex, endTime, true );
-  }
-  void getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
-
-  TimeStamp getVirtualTime( unsigned i );
-  void getVirtualCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
-    return getVirtualCandidateBoundary( startIndex, startTime, false );
-  }
-  void getVirtualCandidateEnd( unsigned *endIndex, TimeStamp *endTime ) {
-    return getVirtualCandidateBoundary( endIndex, endTime, true );
-  }
-  void getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
-  void process();
-};
+      TimeStamp getVirtualTime( unsigned i );
+      void getVirtualCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
+        return getVirtualCandidateBoundary( startIndex, startTime, false );
+      }
+      void getVirtualCandidateEnd( unsigned *endIndex, TimeStamp *endTime ) {
+        return getVirtualCandidateBoundary( endIndex, endTime, true );
+      }
+      void getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
+      void process();
+    };
 
   } // multikinect
 } // unr_rgbd

@@ -84,7 +84,8 @@ int main( int argc, char ** atgv )
 	cout << "The Connected Cameras Serial Numbers are ..." << endl;
 	if( connectedCameras.size() == 0 )
 	{
-		cout << "Error: no cameras connected :(" << endl;
+		cout << "\tError: no cameras connected :(" << endl;
+    cout << "Tester is exiting" << endl;
 		return EXIT_SUCCESS;
 	}
 

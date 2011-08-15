@@ -34,11 +34,12 @@
 #define MULTI_GRAB_MANAGER
 
 // STD includes
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 #include <new> // for peramiter nothrow
-    
+
 //#include <iostream> //REMOVE
     
 // PCL includes
@@ -57,30 +58,11 @@
 
 // Project Includes
 #include <camera.h>
+#include <labeledCloud.h>
 
 namespace unr_rgbd {
   namespace multikinect {
 
-    // Labeled cloud for keeping track of where the cloud came from
-    // wraps the point cloud with a serialNumber
-    struct labeledCloud
-    {
-      // Public Functions
-      labeledCloud() : cloud(), serialNumber("") {}
-      labeledCloud( const labeledCloud &rhs ) { (*this) = rhs; }
-      ~labeledCloud() {}
-      labeledCloud& operator=(const labeledCloud &rhs) {
-        if (this != &rhs) {
-          cloud = rhs.cloud;
-          serialNumber = rhs.serialNumber;
-        }
-        return *this;
-      }
-      
-      pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
-      std::string serialNumber;
-    };
-    
     // Manager is a single instance class that maintains a level abstraction between
     //   the user and the pcl::hardware
     class multiGrabberManager : private boost::noncopyable

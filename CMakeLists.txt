@@ -16,14 +16,16 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # Add default source files
-set(MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/multiGrabManager.cpp)
+set(        MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/multiGrabManager.cpp)
 list(APPEND MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/synchronizer.cpp)
+list(APPEND MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/labeledCloud.cpp)
 list(APPEND MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/multiGrabManager/camera.cpp)
 
 # Add default header files
-set(MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/multiGrabManager.h)
+set(        MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/multiGrabManager.h)
 list(APPEND MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/synchronizer.h)
-list(APPEND MANAGER_LIB_SRCS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/camera.h)
+list(APPEND MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/labeledCloud.h)
+list(APPEND MANAGER_LIB_HEADERS ${PROJECT_SOURCE_DIR}/include/multiGrabManager/camera.h)
 
 include_directories(${PROJECT_SOURCE_DIR}/include/multiGrabManager)
 
