@@ -37,8 +37,7 @@
 
 namespace unr_rgbd {
   namespace multikinect {
-
-
+  
     Synchronizer::Synchronizer(unsigned queueSize)
       : queueSize_(queueSize)
       , numNonEmptyDeques_(0)
@@ -47,10 +46,14 @@ namespace unr_rgbd {
       , pivotIndex_(0)
       , hasPivot_(false)
       , numStreams_(0)
+      , pivotTime_(0)
+      , candidateEnd_(0)
+      , candidateStart_(0)
     {
       // TODO FINISH INITIALIZERS
       // TODO assert queueSize > 0
     }
+    
     Synchronizer::~Synchronizer()
     {
     }
@@ -58,6 +61,29 @@ namespace unr_rgbd {
     // Called to initalize number of streams to synchronize
     void Synchronizer::initalize( unsigned numberStreams )
     {
+      // TODO CHECK ME
+      if( numStreams_ != 0 )  {
+        // Clear out vectors
+        hasDroppedMessages_.clear();
+        interMessageBounds_.clear();
+        warnedAboutIncorrectBounds_.clear();
+        candidate_.clear();
+        deques_.clear();
+        histories_.clear();
+        
+        numNonEmptyDeques_ = 0;
+        pivotIndex_ = 0;
+        hasPivot_ = false;
+        pivotTime_ = 0;
+        candidateEnd_ = 0;
+        candidateStart_ = 0;
+      }
+      hasDroppedMessages_.resize(numberStreams);
+      interMessageBounds_.resize(numberStreams);
+      warnedAboutIncorrectBounds_.resize(numberStreams);
+      candidate_.resize(numberStreams);
+      deques_.resize(numberStreams);
+      histories_.resize(numberStreams);
     }
     
     // Called from manager callback
@@ -68,36 +94,34 @@ namespace unr_rgbd {
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[streamIndex];
       d->push_back(cloud);
       if (d->size() == 1) {
-	++numNonEmptyDeques_;
-	if (numNonEmptyDeques_ == numStreams_) {
-	  process();
-	}
+        ++numNonEmptyDeques_;
+	      if (numNonEmptyDeques_ == numStreams_) {
+	        process();
+	      }
       } else {
-	checkInterMessageBound(streamIndex);
+	      checkInterMessageBound(streamIndex);
       }
 
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[streamIndex];
       
       if (d->size() + v->size() > queueSize_) {
-	numNonEmptyDeques_ = 0;
-	for (unsigned i = 0; i < numStreams_; ++i) {
-	  recover(i);
-	}
+	      numNonEmptyDeques_ = 0;
+	      for (unsigned i = 0; i < numStreams_; ++i) {
+	        recover(i);
+	      }
 
-	if (!d->empty()) {
-	  return;
-	}
+	      if (!d->empty()) {
+	        return;
+	      }
 
-	d->pop_front();
-	hasDroppedMessages_[streamIndex] = true;
+	      d->pop_front();
+	      hasDroppedMessages_[streamIndex] = true;
 	
-	if (hasPivot_ == true) {
-	  hasPivot_ = false;
-	  process();
-	}
-	
+	      if (hasPivot_ == true) {
+	        hasPivot_ = false;
+	        process();
+	      }
       }
-      
       dataMutex_.unlock();
     }
     
@@ -111,81 +135,81 @@ namespace unr_rgbd {
     void Synchronizer::checkInterMessageBound( unsigned i )
     {
       if( ( i > numStreams_ ) || ( warnedAboutIncorrectBounds_[i] ) ) {
-	return;
+	      return;
       }
 
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
 
       if (d->empty()) {
-	return;
+	      return;
       }
 
       TimeStamp msg_time = d->back()->header.stamp;
       TimeStamp previous_msg_time;
 
       if (d->size() == 1) {
-	if (v->empty()) {
-	  return;
-	}
-	previous_msg_time = v->back()->header.stamp;
+	      if (v->empty()) {
+	        return;
+	      }
+	      previous_msg_time = v->back()->header.stamp;
       } else { 
-	previous_msg_time = (*d)[d->size()-2]->header.stamp;
+      	previous_msg_time = (*d)[d->size()-2]->header.stamp;
       }
 
       if (msg_time < previous_msg_time) {
-	// TODO insert warning - messages out of order.
-	warnedAboutIncorrectBounds_[i] = true;
+	      // TODO insert warning - messages out of order.
+	      warnedAboutIncorrectBounds_[i] = true;
       } else if ((msg_time - previous_msg_time) < interMessageBounds_[i]) {
-	// TODO insert warning - time bound not respected.
-	warnedAboutIncorrectBounds_[i] = true;
+	      // TODO insert warning - time bound not respected.
+	      warnedAboutIncorrectBounds_[i] = true;
       }
     }
     
     void Synchronizer::dequeDeleteFront( unsigned i)
     {
       if (i > deques_.size()) {
-	return;
+	      return;
       }
       
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d =  &deques_[i];
       
       if (d->empty()) {
-	return;
+	      return;
       }
       
       d->pop_front();
       
       if (d->empty()) {
-	--numNonEmptyDeques_;
+	      --numNonEmptyDeques_;
       }      
     }
     
     void Synchronizer::dequeMoveFrontToPast( unsigned i)
     {
       if (i > deques_.size()) {
-	return;
+	      return;
       }
       
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
       
       if (d->empty()) {
-	return;
+	      return;
       }
       
       v->push_back(d->front());
       d->pop_front();
       if (d->empty()) {
-	--numNonEmptyDeques_;
+	      --numNonEmptyDeques_;
       }
     }
     
     void Synchronizer::makeCandidate()
     {
       for (unsigned i = 0; i < numStreams_; ++i) {
-	candidate_[i] = deques_[i].front();
-	histories_[i].clear();
+	      candidate_[i] = deques_[i].front();
+	      histories_[i].clear();
       }
     }
     
@@ -194,24 +218,24 @@ namespace unr_rgbd {
     void Synchronizer::recover( unsigned i , size_t numMessages )
     {
       if (i > deques_.size()) {
-	return;
+	      return;
       }
       
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[i];
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *v = &histories_[i];
       
       if (numMessages > v->size()) {
-	return;
+	      return;
       }
       
       while(numMessages > 0) {
-	d->push_front(v->back());
-	v->pop_back();
-	--numMessages;
+	      d->push_front(v->back());
+	      v->pop_back();
+	      --numMessages;
       }
       
       if (!d->empty()) {
-	++numNonEmptyDeques_;
+	      ++numNonEmptyDeques_;
       }
     }
     
@@ -221,19 +245,19 @@ namespace unr_rgbd {
     {
       
       if (i > deques_.size()) {
-	return;
+	      return;
       }
       
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* d = &deques_[i];
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* v = &histories_[i];
       
       while(!v->empty()) {
-	d->push_front(v->back());
-	v->pop_back();
+	      d->push_front(v->back());
+	      v->pop_back();
       }
       
       if (!d->empty()) {
-	++numNonEmptyDeques_;
+	      ++numNonEmptyDeques_;
       }      
     }
     
@@ -242,24 +266,24 @@ namespace unr_rgbd {
     void Synchronizer::recoverAndDelete( unsigned i )
     {
       if (i > deques_.size()) {
-	return;
+	      return;
       }
       
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* d = &deques_[i];
       std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* v = &histories_[i];
       
       while(!v->empty()) {
-	d->push_front(v->back());
-	v->pop_back();
+	      d->push_front(v->back());
+	      v->pop_back();
       }
       
       if (d->empty()) {
-	return;
+	      return;
       }
       
       d->pop_front();
       if(!d->empty()) {
-	++numNonEmptyDeques_;
+	      ++numNonEmptyDeques_;
       }
       
     }
@@ -270,10 +294,22 @@ namespace unr_rgbd {
     
     void Synchronizer::getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
     {
-      
+      //TODO Check me
+      TimeStamp testTime;
+      (*time) = deques_[0].front()->header.stamp;
+      (*index) = 0;
+      for(unsigned i=1; i<numStreams_; i++)
+      {
+        testTime = deques_[i].front()->header.stamp;
+        if( ( testTime < (*time) ) ^ ifEnd )
+        {
+          (*time) = testTime;
+          (*index) = i;
+        }
+      }
     }
     
-    unsigned Synchronizer::getVirtualTime( unsigned i )
+    TimeStamp Synchronizer::getVirtualTime( unsigned i )
     {
       
     }
@@ -285,7 +321,88 @@ namespace unr_rgbd {
     
     void Synchronizer::process()
     {
+      //TODO CHECK ME
+      dataMutex_.lock(); //TODO CHECH THIS said allready locked did I miss something
       
+      unsigned  endIndex = 0, startIndex = 0;
+      TimeStamp endTime  = 0, startTime  = 0;
+      
+      while( numNonEmptyDeques_ == numStreams_ )
+      {
+        getCandidateStart( &startIndex, &startTime );
+        getCandidateEnd( &endIndex, &startTime );
+        
+        for( unsigned i=0; i<numStreams_; i++ )
+        {
+          if( i != endIndex ) {
+            hasDroppedMessages_[i] = false;
+          }
+        }
+        
+        if( hasPivot_ == false )
+        {
+          if( endTime - startTime > maxDuration_ )  {
+            dequeDeleteFront(startIndex);
+            continue;
+          }
+          if( hasDroppedMessages_[endIndex] == true ) {
+            dequeDeleteFront(startIndex);
+            continue;
+          }
+          //Valid Candidate Set found
+          makeCandidate();
+          candidateStart_ = startTime;
+          candidateEnd_ = endTime;
+          pivotIndex_ = endIndex;
+          pivotTime_ = endTime;
+          dequeMoveFrontToPast( startIndex );
+        }
+        else  { //( hasPivot_ == true )
+          if((endTime - candidateEnd_) * ( 1 + agePenalty_ ) >= (startTime - candidateStart_)) {
+            dequeMoveFrontToPast( startIndex );            
+          }
+          else {
+            makeCandidate();
+            candidateStart_ = startTime;
+            candidateEnd_ = endTime;
+            // Keep the same pivit time and index // TODO why?
+            dequeMoveFrontToPast( startIndex );
+          }
+        }
+        if( hasPivot_ == false )  {
+          return;
+        }
+        if( startIndex == pivotIndex_ ) {
+          publishCandidate();
+        }
+        else if((endTime - candidateEnd_) * (1 +  agePenalty_ ) >= (pivotTime_ - candidateStart_)) {
+          publishCandidate();
+        }
+        else if( numNonEmptyDeques_ < numStreams_ )
+        {
+          unsigned  virtualEndIndex = 0, virtualStartIndex = 0;
+          TimeStamp virtualEndTime  = 0, virtualStartTime  = 0;
+          unsigned numNonEmptyDequesBeforeVirtualSearch = numNonEmptyDeques_;
+          vector< unsigned > numVirtualMoves( numStreams_, 0 );
+          
+          getVirtualCandidateStart( &virtualStartIndex, &virtualStartTime );
+          getVirtualCandidateEnd( &virtualEndIndex, &virtualEndTime );
+          if( false ) //TODO
+          {
+            
+          }
+          if( false ) //TODO
+          {
+            for( unsigned i=0; i<numStreams_; i++ )
+            {
+              recover(i);
+            }
+            
+            
+          }
+        }
+      }
+      dataMutex_.unlock();
     }
     
   } // multikinect

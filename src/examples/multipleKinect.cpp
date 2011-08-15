@@ -66,6 +66,8 @@ while (!viewer->wasStopped ())
   viewer->spinOnce (100);
   boost::this_thread::sleep (boost::posix_time::microseconds (100000));
 }
+
+TODO: Look at rs11 08 icp
 */
 
 int main( int argc, char ** atgv )

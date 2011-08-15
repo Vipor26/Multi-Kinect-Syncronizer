@@ -107,30 +107,29 @@ class Synchronizer : private boost::noncopyable
   // Optional Peramiters
   double agePenalty_;
   Duration maxDuration_;
+  vector<Duration> interMessageBounds_;
 
   
   // Private Member Variables
   bool hasPivot_;
+  unsigned queueSize_;
   unsigned pivotIndex_;
   unsigned numStreams_;
-  TimeStamp pivotTime_;
+  unsigned numNonEmptyDeques_;
   
   boost::mutex dataMutex_;
   
+  TimeStamp pivotTime_;
   TimeStamp candidateEnd_;
   TimeStamp candidateStart_;
   
-  unsigned numNonEmptyDeques_;
   vector<bool> hasDroppedMessages_;
-  vector<Duration> interMessageBounds_;
   vector<bool> warnedAboutIncorrectBounds_;
   vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> candidate_;
   vector<deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > deques_;
   vector<vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > histories_;
 
 
-  unsigned queueSize_;
-  
   // Private Functions
   void checkInterMessageBound(unsigned i);
   void dequeDeleteFront( unsigned i);
@@ -148,7 +147,7 @@ class Synchronizer : private boost::noncopyable
   }
   void getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd );
 
-  unsigned getVirtualTime( unsigned i );
+  TimeStamp getVirtualTime( unsigned i );
   void getVirtualCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
     return getVirtualCandidateBoundary( startIndex, startTime, false );
   }
