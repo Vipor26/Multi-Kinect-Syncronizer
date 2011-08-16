@@ -31,6 +31,7 @@
   @author Brian Hamilton
   @author Richard Kelley
   @author Tina Nye
+  @author Katie Browne
 */
 
 #include <synchronizer.h>
@@ -84,12 +85,20 @@ namespace unr_rgbd {
       candidate_.resize(numberStreams);
       deques_.resize(numberStreams);
       histories_.resize(numberStreams);
+      
+      for( unsigned i=0; i< numberStreams; i++ )
+      {
+        interMessageBounds_[i] = 0;
+        hasDroppedMessages_[i] = false;
+        warnedAboutIncorrectBounds_[i] = false;
+      }
+      numStreams_ = numberStreams;
     }
     
     // Called from manager callback
     void Synchronizer::add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
     {
-      dataMutex_.lock();
+      boost::mutex::scoped_lock lock(dataMutex_);
 
       std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> *d = &deques_[streamIndex];
       d->push_back(cloud);
@@ -122,7 +131,6 @@ namespace unr_rgbd {
 	        process();
 	      }
       }
-      dataMutex_.unlock();
     }
     
     // Register callback
@@ -289,7 +297,15 @@ namespace unr_rgbd {
     }
     void Synchronizer::publishCandidate()
     {
+      //TODO: Signal Callback with candidate
+      // candidate_
       
+      hasPivot_ = false; //TODO CHECKME
+      
+       numNonEmptyDeques_ = 0;
+       for( unsigned i = 0; i< numStreams_; i++ ) {
+         recoverAndDelete(i);
+       }
     }
     
     void Synchronizer::getCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
@@ -311,19 +327,47 @@ namespace unr_rgbd {
     
     TimeStamp Synchronizer::getVirtualTime( unsigned i )
     {
+      if( hasPivot_ == false )  { //TODO check me
+        return 0;
+      }
       
+      std::deque<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* d = &deques_[i];
+      std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>* v = &histories_[i];
+      
+      if( d->empty() )
+      {
+        if( v->empty() )  { //TODO: check me
+          return 0;
+        }
+        
+        TimeStamp lastMsgTime = v->back()->header.stamp;
+        TimeStamp msgTimeLowerBound = lastMsgTime + interMessageBounds_[i];
+        if( msgTimeLowerBound > pivotTime_ )  {
+          return msgTimeLowerBound;
+        }
+        // else return pivit time
+        return pivotTime_;
+      }
+      TimeStamp currentMsgTime = d->front()->header.stamp;
+      return currentMsgTime;
     }
     
     void Synchronizer::getVirtualCandidateBoundary( unsigned *index, TimeStamp *time, bool ifEnd )
     {
-      
+      TimeStamp testTime;
+      (*time) = getVirtualTime(0);
+      (*index) = 0;
+      for( unsigned i=1; i< numStreams_; i++ )  {
+        testTime = getVirtualTime(i);
+        if( ( testTime < (*time) ) ^ ifEnd )  {
+          (*time) = testTime;
+          (*index) = i;
+        }
+      }
     }
     
     void Synchronizer::process()
     {
-      //TODO CHECK ME
-      dataMutex_.lock(); //TODO CHECH THIS said allready locked did I miss something
-      
       unsigned  endIndex = 0, startIndex = 0;
       TimeStamp endTime  = 0, startTime  = 0;
       
@@ -402,7 +446,6 @@ namespace unr_rgbd {
           }
         }
       }
-      dataMutex_.unlock();
     }
     
   } // multikinect
