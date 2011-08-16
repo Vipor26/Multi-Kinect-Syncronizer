@@ -37,6 +37,7 @@
 
 // STD includes
 #include <string>
+#include <iostream>
 
 // PCL includes
 #include <pcl/point_cloud.h>

@@ -80,7 +80,7 @@ int main()
 			  serialNumber = string( driver.getSerialNumber(di) );
 
 			  tempDevice.first = serialNumber;
-			  tempDevice.second = new pcl::OpenNIGrabber(serialNumber.c_str());
+			  tempDevice.second = new pcl::OpenNIGrabber(serialNumber);
 
 			  devices.push_back( tempDevice );
 		  }

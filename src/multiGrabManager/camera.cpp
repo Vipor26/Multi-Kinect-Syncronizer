@@ -33,7 +33,7 @@ namespace unr_rgbd {
   namespace multikinect {
     
     Camera::Camera() :
-      serialNumber_(NULL),
+      serialNumber_(""),
       device_(NULL)
     { 
       camerafunction_ = boost::bind( &Camera::cameraCallBack, this, _1);
@@ -53,11 +53,17 @@ namespace unr_rgbd {
     void Camera::initalize( std::string serialNumber, boost::function<void 
                    (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f  )
     {
-      device_ =  new(std::nothrow) pcl::OpenNIGrabber(serialNumber.c_str());
+      try { //TODO REMOVE
+      std::cout << "Connecting: " << serialNumber.c_str();
+      device_ =  new(std::nothrow) pcl::OpenNIGrabber(serialNumber);
       if( device_ == NULL ) {
         throw ConnectionFailedException();
       }
-      
+      std::cout << " ... done "  << std::endl;
+      } catch ( pcl::PCLIOException E )
+      {
+        std::cout << std::endl << E.what() << std::endl;
+      }
       serialNumber_ = serialNumber;
 
       camSignalConnection_ = device_->registerCallback( camerafunction_ );

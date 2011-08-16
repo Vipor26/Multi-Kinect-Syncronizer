@@ -66,9 +66,11 @@ while (!viewer->wasStopped ())
   viewer->spinOnce (100);
   boost::this_thread::sleep (boost::posix_time::microseconds (100000));
 }
-
-TODO: Look at rs11 08 icp
 */
+void multiKinectCB( vector<LabeledCloud>& ) {
+
+  cout << "Ha !" << endl;
+}
 
 int main( int argc, char ** atgv )
 {
@@ -94,7 +96,12 @@ int main( int argc, char ** atgv )
 		cout << "\tCamera " << i << ": " << connectedCameras[i] << endl;
 	}
 
-	//masterInterface.connect();
+  masterInterface.registerCallback( boost::bind( &multiKinectCB, _1 ) );
+
+	masterInterface.connect();
+
+  masterInterface.startSelected();
+
 
 	cout << "Tester is exiting\b" << endl;
 	cout << endl;
