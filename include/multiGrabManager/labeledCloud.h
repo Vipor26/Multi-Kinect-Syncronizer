@@ -46,21 +46,21 @@ namespace unr_rgbd {
   
     // Labeled cloud for keeping track of where the cloud came from
     // wraps the point cloud with a serialNumber
-    struct labeledCloud
+    struct LabeledCloud
     {
       // Public Functions
-      labeledCloud();
-      labeledCloud( const labeledCloud &rhs );
-      ~labeledCloud();
+      LabeledCloud();
+      LabeledCloud( const LabeledCloud &rhs );
+      ~LabeledCloud();
       
-      labeledCloud& operator=(const labeledCloud &rhs);
+      LabeledCloud& operator=(const LabeledCloud &rhs);
       
       // Public Data Members
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
       std::string serialNumber;
     };
     
-    inline std::ostream& operator<<(std::ostream& s, const  labeledCloud &data);
+    inline std::ostream& operator<<(std::ostream& s, const  LabeledCloud &data);
   
   } // multikinect
 } // unr_rgbd

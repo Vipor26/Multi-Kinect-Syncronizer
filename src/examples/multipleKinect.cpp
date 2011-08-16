@@ -42,7 +42,7 @@ using namespace multikinect;
 
 #include <pcl/visualization/pcl_visualizer.h>
 
-boost::shared_ptr<pcl::visualization::PCLVisualizer> createViewer (std::vector<labeledCloud> &clouds )
+boost::shared_ptr<pcl::visualization::PCLVisualizer> createViewer (std::vector<LabeledCloud> &clouds )
 {
   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new  
                                       pcl::visualization::PCLVisualizer ("Multi Cloud Viewer"));
@@ -76,7 +76,7 @@ int main( int argc, char ** atgv )
 	cout << "Welcome to the multiple kinect class tester" << endl;
 
   cout << "\tInitalizing (please wait)" << endl;
-	multiGrabberManager masterInterface;
+	MultiGrabberManager masterInterface;
 	
 	vector<string> connectedCameras = masterInterface.getAvailableSerialNumbers();
 
@@ -96,7 +96,7 @@ int main( int argc, char ** atgv )
 
 	//masterInterface.connect();
 
-	cout << "Tester is exiting" << endl;
+	cout << "Tester is exiting\b" << endl;
 	cout << endl;
 	return EXIT_SUCCESS;
 }

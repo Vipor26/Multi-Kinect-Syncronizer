@@ -54,7 +54,7 @@
 #include <boost/cstdint.hpp> // for uint64_t
 #include <boost/date_time.hpp> // for thread sleep
 #include <boost/noncopyable.hpp> // to make class not copiable
-#include <boost/signals2/mutex.hpp>
+#include <boost/signals2.hpp>
 
 using boost::uint64_t;
 using std::vector;
@@ -69,17 +69,18 @@ namespace unr_rgbd {
     class Synchronizer : private boost::noncopyable
     {
      public:
-      Synchronizer(unsigned queueSize = 5);
+      Synchronizer();
       ~Synchronizer();
       
       // Called to initalize number of streams to synchronize
-      void initalize( unsigned numberStreams );
+      void initalize( unsigned numberStreams, unsigned queueSize = 5);
 
       // Called from manager callback
       void add( unsigned streamIndex, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud );
 
       // Register callback
-      void registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f ); 
+      void registerCallback( boost::function<void 
+             (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>&)> f ); 
       
       // Accessors
       void setAgePenalty( double age ) {
@@ -109,6 +110,10 @@ namespace unr_rgbd {
       double agePenalty_;
       Duration maxDuration_;
       vector<Duration> interMessageBounds_;
+
+      // Signal stuff
+      boost::signals2::signal<void ( vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& )> mainSignal_;
+      boost::signals2::connection mainConnection_;
 
       // Private Member Variables
       bool hasPivot_;

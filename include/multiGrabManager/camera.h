@@ -47,31 +47,38 @@
 // Boost Includes
 #include <boost/thread.hpp>
 #include <boost/date_time.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/signals2/mutex.hpp>
 
 namespace unr_rgbd {
   namespace multikinect {
 
-    class multiGrabberManager;
+    // class prototype
+    class MultiGrabberManager;
 
     class Camera
     {
+    public:
+      Camera();
+      Camera( const Camera &rhs );
+      ~Camera();
+      
+      Camera& operator=(const Camera &rhs);
+      // Exception Type
+      class ConnectionFailedException{};
     private:
       // Accessor functions
-      Camera(boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
-      ~Camera();
-      void initalize( std::string serialNumber );
+      void initalize( std::string serialNumber, boost::function<void          
+             (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
 
       // This lets us start and stop the grabber from the manager - wrapper for pcl::Grabber functions. 
       void start();
       void stop();
 
-      // signal ? register a callback
+
       // Handles the signal connections between grabber and this class and this class and manager
       boost::signals2::connection camSignalConnection_;
       
-      boost::signals2::signal<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> managerSignalConnection_;
+      boost::signals2::signal<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr)> managerSignalConnection_;
 
       // New Labaled callback handle
       boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> managerfunction_;
@@ -84,7 +91,7 @@ namespace unr_rgbd {
       // Information about camera
       std::string serialNumber_;
       pcl::Grabber* device_;
-      friend class multiGrabberManager;
+      friend class MultiGrabberManager;
     };
 
   } // multikinect

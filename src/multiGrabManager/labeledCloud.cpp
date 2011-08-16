@@ -35,20 +35,20 @@
 namespace unr_rgbd {
   namespace multikinect {
   
-    labeledCloud::labeledCloud()
+    LabeledCloud::LabeledCloud()
       : cloud()
       , serialNumber("")
     {}
   
-    labeledCloud::labeledCloud( const labeledCloud &rhs ) 
+    LabeledCloud::LabeledCloud( const LabeledCloud &rhs ) 
     {
       (*this) = rhs;
     }
     
-    labeledCloud::~labeledCloud() 
+    LabeledCloud::~LabeledCloud() 
     {}
     
-    labeledCloud& labeledCloud::operator=(const labeledCloud &rhs) {
+    LabeledCloud& LabeledCloud::operator=(const LabeledCloud &rhs) {
         if (this != &rhs) {
           cloud = rhs.cloud;
           serialNumber = rhs.serialNumber;
@@ -56,7 +56,7 @@ namespace unr_rgbd {
         return *this;
       }
   
-    inline std::ostream& operator<<(std::ostream& s, const  labeledCloud &data)
+    inline std::ostream& operator<<(std::ostream& s, const  LabeledCloud &data)
     {
       s << "Cloud from Camera Serial Number: " << data.serialNumber << std::endl;
       s << data.cloud; // uses cloud overload

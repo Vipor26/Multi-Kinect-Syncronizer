@@ -32,32 +32,62 @@
 namespace unr_rgbd {
   namespace multikinect {
     
-    Camera::Camera( boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f ) :
+    Camera::Camera() :
       serialNumber_(NULL),
       device_(NULL)
-    {
-      managerfunction_ = f;
-      
-      managerSignalConnection_.connect( f );                                                                                                                                                                                                   
-      
+    { 
       camerafunction_ = boost::bind( &Camera::cameraCallBack, this, _1);
     }
-
+    
+    Camera::Camera( const Camera &rhs )
+    {
+      (*this) = rhs;
+    }
+    
     Camera::~Camera()
     {
       if (device_ != NULL) {
-	delete device_;
+	      delete device_;
       }
     }
-    void Camera::initalize( std::string serialNumber )
+    void Camera::initalize( std::string serialNumber, boost::function<void 
+                   (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f  )
     {
       device_ =  new(std::nothrow) pcl::OpenNIGrabber(serialNumber.c_str());
-      //if( device_ == NULL )                                                                                                                                                                                                              
-      //      throw                                                                                                                                                                                                                        
+      if( device_ == NULL ) {
+        throw ConnectionFailedException();
+      }
       
       serialNumber_ = serialNumber;
 
       camSignalConnection_ = device_->registerCallback( camerafunction_ );
+      
+      managerfunction_ = f;
+      managerSignalConnection_.connect( managerfunction_ );
+    }
+
+    Camera& Camera::operator=(const Camera &rhs)
+    {
+      if (this != &rhs) {
+        if( rhs.device_ != NULL ) {
+          serialNumber_ = rhs.serialNumber_;
+          device_ =  new(std::nothrow) pcl::OpenNIGrabber( serialNumber_.c_str() );
+          if( device_ == NULL ) {
+            throw ConnectionFailedException();
+          }
+          
+          camerafunction_ = boost::bind( &Camera::cameraCallBack, this, _1);
+          camSignalConnection_ = device_->registerCallback( camerafunction_ );
+        
+          managerfunction_ = rhs.managerfunction_;
+          managerSignalConnection_.connect( managerfunction_ );
+        }
+        else  {
+          serialNumber_ = "";
+          device_ = NULL;
+        }
+      }
+      return *this;
     }
 
     void Camera::start() {

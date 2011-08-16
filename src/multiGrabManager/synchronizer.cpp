@@ -39,8 +39,8 @@
 namespace unr_rgbd {
   namespace multikinect {
   
-    Synchronizer::Synchronizer(unsigned queueSize)
-      : queueSize_(queueSize)
+    Synchronizer::Synchronizer()
+      : queueSize_(0)
       , numNonEmptyDeques_(0)
       , maxDuration_(std::numeric_limits<boost::uint64_t>::max())
       , agePenalty_(0.1)
@@ -51,8 +51,6 @@ namespace unr_rgbd {
       , candidateEnd_(0)
       , candidateStart_(0)
     {
-      // TODO FINISH INITIALIZERS
-      // TODO assert queueSize > 0
     }
     
     Synchronizer::~Synchronizer()
@@ -60,9 +58,10 @@ namespace unr_rgbd {
     }
     
     // Called to initalize number of streams to synchronize
-    void Synchronizer::initalize( unsigned numberStreams )
+    void Synchronizer::initalize( unsigned numberStreams, unsigned queueSize)
     {
-      // TODO CHECK ME
+      queueSize_ = queueSize;
+
       if( numStreams_ != 0 )  {
         // Clear out vectors
         hasDroppedMessages_.clear();
@@ -88,6 +87,7 @@ namespace unr_rgbd {
       
       for( unsigned i=0; i< numberStreams; i++ )
       {
+	      deques_[i].resize(queueSize_);
         interMessageBounds_[i] = 0;
         hasDroppedMessages_[i] = false;
         warnedAboutIncorrectBounds_[i] = false;
@@ -134,9 +134,12 @@ namespace unr_rgbd {
     }
     
     // Register callback
-    void Synchronizer::registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>)> f )
+    void Synchronizer::registerCallback( boost::function<void (vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>&)> func )
     {
-      
+      if( mainConnection_.connected() == true ) {
+        mainConnection_.disconnect();
+      }
+      mainConnection_ =  mainSignal_.connect( func );
     }
     
     // Private Functions

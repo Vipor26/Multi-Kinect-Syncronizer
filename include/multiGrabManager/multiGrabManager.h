@@ -54,48 +54,71 @@
 #include <boost/thread.hpp>
 #include <boost/date_time.hpp> // for thread sleep
 #include <boost/noncopyable.hpp> // to make class not copiable
-#include <boost/signals2/mutex.hpp> // thread safe signal
+#include <boost/signals2.hpp>
 
 // Project Includes
+#include <synchronizer.h>
 #include <camera.h>
 #include <labeledCloud.h>
 
+
 namespace unr_rgbd {
   namespace multikinect {
-
+    
+    
     // Manager is a single instance class that maintains a level abstraction between
     //   the user and the pcl::hardware
-    class multiGrabberManager : private boost::noncopyable
+    class MultiGrabberManager : private boost::noncopyable
     {
      public:
+     
+      // Exceptions
+      class CamerasNotFoundException{};
+      
 	    // Constructor Destructor
-	    multiGrabberManager();
-	    ~multiGrabberManager();
+	    MultiGrabberManager();
+	    ~MultiGrabberManager();
 	
 	    // available serial numbers
 	    std::vector<std::string> getAvailableSerialNumbers();
 	
 	    // if nonSpecified will connect to all available
-	    void connect( std::vector<std::string> = std::vector<std::string>() ); //NOTCOMPLETE
+	    void connect( std::vector<std::string> = std::vector<std::string>() );
 	
 	    // functions to start stop the selected camera streams
 	    //void startSelected();
 	    //void stopSelected();
 	
-	    // Polled functions
-	    //bool newDataAvailable();
-	    //vector<labeledCloud> getData();
-	
-	    // callback functions
-	    // unsigned addCallback( const ??? callback );
-	    //returns the number of callbacks, and return -1 is callback index 
-	    //void removeCallback( unsigned i );
+	    // register Callback
+      void registerCallback( boost::function< void ( vector<LabeledCloud>& ) > f );
+	    
+	    // Accessors
+      void setSyncBufferSize( unsigned bufSize ) {
+        bufferSize_ = bufSize;
+      }
+      unsigned getSyncBufferSize() {
+        return bufferSize_;
+      }
+	    
      private:
 	
-	    // Connected Cammera peramiters
-	    std::map< std::string, pcl::Grabber* > connectedDevices;
-	    boost::bimap< std::string, unsigned > serialIndexBiMap;
+	    typedef boost::bimap< std::string, unsigned > StrIdxBm;
+	    typedef StrIdxBm::value_type StrIdxPair;
+	
+	    Synchronizer sync_;
+	    vector<Camera> Cameras_;
 
+	    // Connected Cammera peramiters
+	    StrIdxBm serialIndexBiMap_;
+
+      unsigned bufferSize_;
+
+      boost::signals2::signal<void ( vector<LabeledCloud>& )> userSignal_;
+      boost::signals2::connection userSignalConnection_;
+      
+      // callback functions
+	    void cameraCallback( std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr& );
+	    void synchroCallback( vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& );
 
 	    // Thread peramiters
 	    bool updateThreadRunning;

@@ -36,26 +36,30 @@ namespace unr_rgbd {
   namespace multikinect {
 
     // Constructor
-    multiGrabberManager::multiGrabberManager() : updateThreadRunning(false)
+    MultiGrabberManager::MultiGrabberManager()
+      : updateThreadRunning(false)
+      , bufferSize_(5)
     {
       using std::vector;
       using std::string;
       
       allSerialNumbers = getConnectedDeviceSerialNumbers();
+      
+      sync_.registerCallback( boost::bind( &MultiGrabberManager::synchroCallback, this, _1 ) );
 
       // Start update thread
       startUpdateThread();
     }
     
     // Destructor
-    multiGrabberManager::~multiGrabberManager()
+    MultiGrabberManager::~MultiGrabberManager()
     {
       // Stop update thread
       stopUpdateThread();
     }
     
     
-    std::vector<std::string> multiGrabberManager::getAvailableSerialNumbers()
+    std::vector<std::string> MultiGrabberManager::getAvailableSerialNumbers()
     {
       using std::vector;
       using std::string;
@@ -68,22 +72,89 @@ namespace unr_rgbd {
       return retVec;
     }
     
-    
-    void multiGrabberManager::connect( std::vector<std::string> serial_list )
+    void MultiGrabberManager::connect( std::vector<std::string> serial_list )
     {
+      using std::vector;
+      using std::string;
+      vector< string > connectedSerialList = getAvailableSerialNumbers();
+      unsigned j, sj;
+      unsigned numberStreams;
+
       if( serial_list.size() == 0 ) { // empty so use all
-	      serial_list = getAvailableSerialNumbers();
-	    }
-      else
-	    { // check to make sure the requested are available
-	      //TODO: create vector of cameras, note sycronizer needs a clean up
-	      //        if user decieds to change there mind and re runs this functions
-	    }
+	      serial_list = connectedSerialList;
+      }
+      else {
+        if( connectedSerialList.size() < serial_list.size() )
+        {
+          throw CamerasNotFoundException();
+        }
+        sort( serial_list.begin(), serial_list.end() );
+        sort( connectedSerialList.begin(), connectedSerialList.end() );
+        j=0;
+        numberStreams = serial_list.size();
+        sj = connectedSerialList.size();
+        for( unsigned i=0; i<numberStreams; i++ )  {
+          while(( serial_list[i] != connectedSerialList[j] ) && (j < sj) )  {
+            j++;
+          }
+          if( j == sj ) {
+            throw CamerasNotFoundException();
+          }
+        }
+        // is a subset continue
+      }
+      
+      if( Cameras_.empty() == false ) {
+        Cameras_.clear();
+      }
+      
+      Cameras_.resize( numberStreams );
+      for( unsigned i=0; i<numberStreams; i++ )
+      {
+        Cameras_[i].initalize( serial_list[i], boost::bind( &MultiGrabberManager::cameraCallback, this, _1, _2 ) );
+        serialIndexBiMap_.insert( StrIdxPair( serial_list[i], i ) );
+      }
+      
+      sync_.initalize( numberStreams, bufferSize_ );
+      
     }
-    
+
+    void MultiGrabberManager::registerCallback( boost::function< void ( vector<LabeledCloud>& ) > func )
+    {
+      if( userSignalConnection_.connected() == true ) {
+        userSignalConnection_.disconnect();
+      }
+     userSignalConnection_ =  userSignal_.connect( func );
+    }
 
     // <><><>    Private Member Functions    <><><>
-    std::vector< std::string > multiGrabberManager::getConnectedDeviceSerialNumbers()
+    void MultiGrabberManager::cameraCallback(std::string &serialNum, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
+    {
+       unsigned streamIndex = ( *serialIndexBiMap_.left.find( serialNum ) ).second;
+       sync_.add( streamIndex, cloud );
+    }
+  
+    void MultiGrabberManager::synchroCallback( vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clouds )
+    {
+      
+      using std::string;
+      
+      unsigned i, si;
+      string cameraName;
+      vector<LabeledCloud> labeledClouds;
+      
+      si = clouds.size();
+      
+      labeledClouds.resize( si );
+      for( i=0; i<si; i++ ) {
+        cameraName = ( *serialIndexBiMap_.right.find( i ) ).first;
+        labeledClouds[i].serialNumber = cameraName;
+        labeledClouds[i].cloud = clouds[i];
+      }
+      userSignal_( labeledClouds );
+    }
+
+    std::vector< std::string > MultiGrabberManager::getConnectedDeviceSerialNumbers()
     {
       using std::vector;
       using std::string;
@@ -109,15 +180,15 @@ namespace unr_rgbd {
     
     
     // Thread Functions
-    void multiGrabberManager::startUpdateThread()
+    void MultiGrabberManager::startUpdateThread()
     {
       if( !updateThreadRunning )
       {
         updateThreadRunning = true;
-        deviceUpdateThread = boost::thread(&multiGrabberManager::updateThread, this );
+        deviceUpdateThread = boost::thread(&MultiGrabberManager::updateThread, this );
       }
     }
-    void multiGrabberManager::stopUpdateThread()
+    void MultiGrabberManager::stopUpdateThread()
     {
       if( updateThreadRunning )
       {
@@ -126,7 +197,7 @@ namespace unr_rgbd {
       }
     }
 
-    void multiGrabberManager::updateThread()
+    void MultiGrabberManager::updateThread()
     {
       using std::vector;
       using std::string;
