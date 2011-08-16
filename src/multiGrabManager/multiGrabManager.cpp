@@ -107,7 +107,7 @@ namespace unr_rgbd {
       if( Cameras_.empty() == false ) {
         Cameras_.clear();
       }
-      
+      serialIndexBiMap_.clear();
       Cameras_.resize( numberStreams );
       for( unsigned i=0; i<numberStreams; i++ )
       {
@@ -118,6 +118,19 @@ namespace unr_rgbd {
       sync_.initalize( numberStreams, bufferSize_ );
       
     }
+    
+	  void MultiGrabberManager::startSelected() {
+	    unsigned numberStreams = Cameras_.size();
+	    for( unsigned i=0; i<numberStreams; i++ ) {
+	      Cameras_[i].start();
+	    }
+	  }
+	  void MultiGrabberManager::stopSelected()  {
+	    unsigned numberStreams = Cameras_.size();
+	    for( unsigned i=0; i<numberStreams; i++ ) {
+	      Cameras_[i].stop();
+	    }
+	  }
 
     void MultiGrabberManager::registerCallback( boost::function< void ( vector<LabeledCloud>& ) > func )
     {

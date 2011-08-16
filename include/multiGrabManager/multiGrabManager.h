@@ -86,8 +86,8 @@ namespace unr_rgbd {
 	    void connect( std::vector<std::string> = std::vector<std::string>() );
 	
 	    // functions to start stop the selected camera streams
-	    //void startSelected();
-	    //void stopSelected();
+	    void startSelected();
+	    void stopSelected();
 	
 	    // register Callback
       void registerCallback( boost::function< void ( vector<LabeledCloud>& ) > f );
