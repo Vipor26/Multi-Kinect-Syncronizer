@@ -59,7 +59,7 @@ namespace unr_rgbd {
     {
     private:
       // Accessor functions
-      Camera(boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f );
+      Camera(boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
       ~Camera();
       void initalize( std::string serialNumber );
 
@@ -69,15 +69,17 @@ namespace unr_rgbd {
 
       // signal ? register a callback
       // Handles the signal connections between grabber and this class and this class and manager
-      boost::signals2::connection camSignalConnection_, managerSignalConnection_;
+      boost::signals2::connection camSignalConnection_;
+      
+      boost::signals2::signal<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> managerSignalConnection_;
 
       // New Labaled callback handle
-      boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> managerfunction_;
+      boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> managerfunction_;
 
       // Camera callback handle
-      boost::function<void (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> camerafunction_;
+      boost::function<void (pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> camerafunction_;
 
-      void cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud );
+      void cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud );
 
       // Information about camera
       std::string serialNumber_;

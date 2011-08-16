@@ -30,8 +30,8 @@
 
   @author Brian Hamilton
   @author Richard Kelley
-  @author Tina Nye
   @author Katie Browne
+  @author Tina Nye
 */
 
 #include <synchronizer.h>

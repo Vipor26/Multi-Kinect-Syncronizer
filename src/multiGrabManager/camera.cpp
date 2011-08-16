@@ -32,14 +32,13 @@
 namespace unr_rgbd {
   namespace multikinect {
     
-    Camera::Camera( boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f ) :
+    Camera::Camera( boost::function<void (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f ) :
       serialNumber_(NULL),
       device_(NULL)
     {
       managerfunction_ = f;
       
-      //TODO set connection betwwen this and f                                                                                                                                                                                             
-      //      managerSignalConnection_                                                                                                                                                                                                     
+      managerSignalConnection_.connect( f );                                                                                                                                                                                                   
       
       camerafunction_ = boost::bind( &Camera::cameraCallBack, this, _1);
     }
@@ -69,8 +68,9 @@ namespace unr_rgbd {
       device_->stop();
     }
 
-    void Camera::cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud )
+    void Camera::cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
     {
+      managerSignalConnection_( serialNumber_, cloud );
     }
   } // multikinect
 } // unr_rgbd
