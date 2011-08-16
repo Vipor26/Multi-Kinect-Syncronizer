@@ -414,6 +414,7 @@ namespace unr_rgbd {
           }
         }
         if( hasPivot_ == false )  {
+          // TODO  cerr <<
           return;
         }
         if( startIndex == pivotIndex_ ) {
@@ -424,26 +425,41 @@ namespace unr_rgbd {
         }
         else if( numNonEmptyDeques_ < numStreams_ )
         {
-          unsigned  virtualEndIndex = 0, virtualStartIndex = 0;
-          TimeStamp virtualEndTime  = 0, virtualStartTime  = 0;
-          unsigned numNonEmptyDequesBeforeVirtualSearch = numNonEmptyDeques_;
           vector< unsigned > numVirtualMoves( numStreams_, 0 );
-          
-          getVirtualCandidateStart( &virtualStartIndex, &virtualStartTime );
-          getVirtualCandidateEnd( &virtualEndIndex, &virtualEndTime );
-          if( false ) //TODO
+          while( true )
           {
+            unsigned  virtualEndIndex = 0, virtualStartIndex = 0;
+            TimeStamp virtualEndTime  = 0, virtualStartTime  = 0;
             
-          }
-          if( false ) //TODO
-          {
-            for( unsigned i=0; i<numStreams_; i++ )
+            
+            getVirtualCandidateStart( &virtualStartIndex, &virtualStartTime );
+            getVirtualCandidateEnd( &virtualEndIndex, &virtualEndTime );
+            if((virtualEndTime - candidateEnd_) * (1 +  agePenalty_ ) >= (pivotTime_ - candidateStart_))
             {
-              recover(i);
+              publishCandidate();
+              break;
             }
+            if((virtualEndTime - candidateEnd_) * (1 +  agePenalty_ ) < (virtualStartTime - candidateStart_))
+            {
+              numNonEmptyDeques_ = 0;
             
-            
-          }
+              for( unsigned i=0; i<numStreams_; i++ )
+              {
+                recover(i, numVirtualMoves[i]);
+              }
+              break;
+            }
+            if( virtualStartIndex == pivotIndex_ )  {
+              // TODO cerr
+              return;
+            }
+            if( virtualStartTime == pivotTime_ )  {
+              // TODO cerr
+              return;
+            }
+            dequeMoveFrontToPast( virtualStartIndex );
+            numVirtualMoves[virtualStartIndex]++;
+          } // while 1 
         }
       }
     }
