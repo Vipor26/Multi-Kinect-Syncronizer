@@ -68,7 +68,7 @@ namespace unr_rgbd {
       class ConnectionFailedException{};
     private:
       // Accessor functions
-      void initalize( std::string serialNumber, boost::function<void          
+      void initalize( boost::shared_ptr<pcl::Grabber> device, std::string serialNumber, boost::function<void          
              (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
 
       // This lets us start and stop the grabber from the manager - wrapper for pcl::Grabber functions. 
@@ -91,7 +91,7 @@ namespace unr_rgbd {
 
       // Information about camera
       std::string serialNumber_;
-      pcl::Grabber* device_;
+      boost::shared_ptr<pcl::Grabber> device_;
       friend class MultiGrabberManager;
     };
 

@@ -33,8 +33,8 @@ namespace unr_rgbd {
   namespace multikinect {
     
     Camera::Camera() :
-      serialNumber_(""),
-      device_(NULL)
+      serialNumber_("")
+      //device_(NULL)
     { 
       camerafunction_ = boost::bind( &Camera::cameraCallBack, this, _1);
     }
@@ -46,24 +46,33 @@ namespace unr_rgbd {
     
     Camera::~Camera()
     {
+      /*
       if (device_ != NULL) {
-	      delete device_;
-      }
+	delete device_;
+	}*/
     }
-    void Camera::initalize( std::string serialNumber, boost::function<void 
+    void Camera::initalize( boost::shared_ptr<pcl::Grabber> device, std::string serialNumber, boost::function<void 
                    (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f  )
     {
-      try { //TODO REMOVE
-      std::cout << "Connecting: " << serialNumber.c_str();
-      device_ =  new(std::nothrow) pcl::OpenNIGrabber(serialNumber);
-      if( device_ == NULL ) {
-        throw ConnectionFailedException();
+      //device_.reset( new openni_wrapper::OpenNIDevice(*device));
+      device_ = device;
+      /*
+      if (device_ != NULL) {
+	delete device_;
       }
-      std::cout << " ... done "  << std::endl;
+      try { //TODO REMOVE
+	std::cout << "Connecting: " << serialNumber;
+	device_ =  new(std::nothrow) pcl::OpenNIGrabber(serialNumber);
+	if( device_ == NULL ) {
+	  throw ConnectionFailedException();
+	}
+	std::cout << " ... done "  << std::endl;
       } catch ( pcl::PCLIOException E )
       {
         std::cout << std::endl << E.what() << std::endl;
+	exit(3);
       }
+      */
       serialNumber_ = serialNumber;
 
       camSignalConnection_ = device_->registerCallback( camerafunction_ );
@@ -77,7 +86,7 @@ namespace unr_rgbd {
       if (this != &rhs) {
         if( rhs.device_ != NULL ) {
           serialNumber_ = rhs.serialNumber_;
-          device_ =  new(std::nothrow) pcl::OpenNIGrabber( serialNumber_.c_str() );
+          device_.reset(new(std::nothrow) pcl::OpenNIGrabber( serialNumber_ ));
           if( device_ == NULL ) {
             throw ConnectionFailedException();
           }
@@ -90,7 +99,7 @@ namespace unr_rgbd {
         }
         else  {
           serialNumber_ = "";
-          device_ = NULL;
+          //device_ = NULL;
         }
       }
       return *this;
