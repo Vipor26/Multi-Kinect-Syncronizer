@@ -91,7 +91,8 @@ namespace unr_rgbd {
 
       // Information about camera
       std::string serialNumber_;
-      boost::shared_ptr<pcl::Grabber> device_;
+      //boost::shared_ptr<pcl::Grabber> device_;
+      boost::shared_ptr<pcl::OpenNIGrabber> device_;
       friend class MultiGrabberManager;
     };
 
