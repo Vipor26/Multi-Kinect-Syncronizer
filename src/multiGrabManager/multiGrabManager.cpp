@@ -39,12 +39,11 @@ namespace unr_rgbd {
     MultiGrabberManager::MultiGrabberManager()
       : updateThreadRunning(false)
       , bufferSize_(5)
-      , driver_(openni_wrapper::OpenNIDriver::getInstance())
+      , driver_(openni_wrapper::OpenNIDriver::getInstance()) // get a refrence to the openni driver
     {
       using std::vector;
       using std::string;
 
-      //driver_ = openni_wrapper::OpenNIDriver::getInstance();
 
       allSerialNumbers = getConnectedDeviceSerialNumbers();
 
@@ -121,10 +120,30 @@ namespace unr_rgbd {
       Cameras_.resize( numberStreams );
       for( unsigned i=0; i<numberStreams; i++ )
         {
-          Cameras_[i].initalize(
-                                driver_.getDeviceBySerialNumber(serial_list[i]),
-                                serial_list[i],
-                                boost::bind( &MultiGrabberManager::cameraCallback, this, _1, _2 ) );
+          //boost::shared_ptr<pcl::Grabber> deviceGrabber;
+          boost::shared_ptr<openni_wrapper::OpenNIDevice> device;
+
+          
+          boost::function<void(std::string&, boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB> >&)> func;
+          std::string serialName;
+
+          device = driver_.getDeviceBySerialNumber(serial_list[i]);
+          
+          //get the serial name of this device;
+          serialName = serial_list[i];
+          func = boost::bind( &MultiGrabberManager::cameraCallback, this, _1, _2 );
+
+          //make sure the device was found
+          if( device == NULL )
+          {
+            //device could not be found by that serial number
+          }
+          // TODO change camera initalize to take
+
+          
+          boost::shared_ptr<pcl::OpenNIGrabber> deviceGrabber( new pcl::OpenNIGrabber(serialName) );
+
+          Cameras_[i].initalize( deviceGrabber, serialName, func);
 
           serialIndexBiMap_.insert( StrIdxPair( serial_list[i], i ) );
         }

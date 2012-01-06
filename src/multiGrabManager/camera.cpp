@@ -117,5 +117,6 @@ namespace unr_rgbd {
     {
       managerSignalConnection_( serialNumber_, cloud );
     }
+
   } // multikinect
 } // unr_rgbd

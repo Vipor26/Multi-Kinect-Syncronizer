@@ -60,31 +60,32 @@ int main()
   cout << "Welcome to the multiple kinect view test program" << endl;
 
   numberDevices = 0;
-  try{
+  try
+  {
     numberDevices = driver.updateDeviceList();
 
     cout << "There are " << numberDevices << " connected to this computer" << endl;
 
     if( numberDevices != 0 )
+    {
+      for( di = 0; di < numberDevices; di++ )
       {
-        for( di = 0; di < numberDevices; di++ )
-          {
-            cout << "\tDevice " << di << ": info ( " << driver.getConnectionString(di) << " ) s#: ";
-            cout << driver.getSerialNumber(di) << endl;
-          }
-
-        cout << "Connecting to all devices" << endl;
-
-        for( di = 0; di < numberDevices; di++ )
-          {
-            serialNumber = string( driver.getSerialNumber(di) );
-
-            tempDevice.first = serialNumber;
-            tempDevice.second = new pcl::OpenNIGrabber(serialNumber);
-
-            devices.push_back( tempDevice );
-          }
+        cout << "\tDevice " << di << ": info ( " << driver.getConnectionString(di) << " ) s#: ";
+        cout << driver.getSerialNumber(di) << endl;
       }
+
+      cout << "Connecting to all devices" << endl;
+
+      for( di = 0; di < numberDevices; di++ )
+      {
+        serialNumber = string( driver.getSerialNumber(di) );
+
+        tempDevice.first = serialNumber;
+        tempDevice.second = new pcl::OpenNIGrabber(serialNumber);
+
+        devices.push_back( tempDevice );
+      }
+    }
   }
   catch( ... )  {
   }

@@ -66,15 +66,17 @@ namespace unr_rgbd {
       Camera& operator=(const Camera &rhs);
       // Exception Type
       class ConnectionFailedException{};
+
     private:
       // Accessor functions
+      //void initalize( boost::shared_ptr<pcl::Grabber> device, std::string serialNumber, boost::function<void          
+      //       (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
       void initalize( boost::shared_ptr<pcl::Grabber> device, std::string serialNumber, boost::function<void          
-             (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
+               (std::string&, pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> f );
 
       // This lets us start and stop the grabber from the manager - wrapper for pcl::Grabber functions. 
       void start();
       void stop();
-
 
       // Handles the signal connections between grabber and this class and this class and manager
       boost::signals2::connection camSignalConnection_;
@@ -87,12 +89,15 @@ namespace unr_rgbd {
       // Camera callback handle
       boost::function<void (pcl::PointCloud<pcl::PointXYZRGB>::Ptr&)> camerafunction_;
 
+      // Actual Camera Callback
       void cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud );
 
       // Information about camera
       std::string serialNumber_;
-      //boost::shared_ptr<pcl::Grabber> device_;
-      boost::shared_ptr<pcl::OpenNIGrabber> device_;
+      boost::shared_ptr<pcl::Grabber> device_;
+      //boost::shared_ptr<pcl::OpenNIGrabber> device_;
+
+
       friend class MultiGrabberManager;
     };
 

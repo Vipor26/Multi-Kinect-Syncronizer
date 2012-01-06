@@ -75,7 +75,7 @@ void multiKinectCB( vector<LabeledCloud>& ) {
 int main( int argc, char ** atgv )
 {
 	cout << endl;
-	cout << "Welcome to the multiple kinect class tester" << endl;
+	cout << "Welcome to the multiple kinect library tester" << endl;
 
   cout << "\tInitalizing (please wait)" << endl;
 	MultiGrabberManager masterInterface;

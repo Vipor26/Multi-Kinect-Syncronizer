@@ -36,7 +36,7 @@ target_link_libraries(multiGrabManager ${PCL_LIBRARIES})
 IF(BUILD_EXAMPLES)
     # Compile the Example program
     add_executable(multipleKinect ${PROJECT_SOURCE_DIR}/src/examples/multipleKinect.cpp)
-    # Link the Test program to the Serial library
+    # Link the Test program to the MultipleKinect library
     target_link_libraries(multipleKinect multiGrabManager)
     target_link_libraries(multipleKinect ${PCL_LIBRARIES})
     

@@ -34,13 +34,12 @@
 #define MULTI_GRAB_MANAGER
 
 // STD includes
-#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 #include <new> // for peramiter nothrow
 
-//#include <iostream> //REMOVE
+#include <iostream> //REMOVE
 
 // PCL includes
 #include <pcl/point_cloud.h>
@@ -90,7 +89,7 @@ namespace unr_rgbd {
         void stopSelected();
 
         // register Callback
-        void registerCallback( boost::function< void ( vector<LabeledCloud>& ) > f );
+        void registerCallback( boost::function< void ( vector<LabeledCloud>& )> f );
 
         // Accessors
         void setSyncBufferSize( unsigned bufSize ) {
@@ -105,10 +104,11 @@ namespace unr_rgbd {
         typedef boost::bimap< std::string, unsigned > StrIdxBm;
         typedef StrIdxBm::value_type StrIdxPair;
 
-        Synchronizer sync_;
-	openni_wrapper::OpenNIDriver& driver_;
+        Synchronizer sync_; // Class to syncromize the images coming from the camera vector
 
-        vector<Camera> Cameras_;
+	      openni_wrapper::OpenNIDriver &driver_; // Class to get available cameras
+
+        vector<Camera> Cameras_; // Cameras
 
         // Connected Cammera peramiters
         StrIdxBm serialIndexBiMap_;
