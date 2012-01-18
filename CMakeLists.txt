@@ -4,7 +4,7 @@ project(multiple_kinects)
 
 #options
 option(BUILD_EXAMPLES "Build all of the multiple kinects examples." ON)
-
+option(BUILD_TESTS "Build all of the multiple kinects tests (not gtests) )." ON)
 # Include everthing related to PCL
 find_package(PCL 1.0 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
@@ -43,7 +43,18 @@ IF(BUILD_EXAMPLES)
     #compile the test program
     add_executable(principleTest ${PROJECT_SOURCE_DIR}/src/examples/principleDemo.cpp)
     target_link_libraries(principleTest ${PCL_LIBRARIES})
+
+    add_executable(simpleDemo ${PROJECT_SOURCE_DIR}/src/examples/simpleDemo.cpp
+                              ${PROJECT_SOURCE_DIR}/src/multiGrabManager/synchronizer.cpp)
+    target_link_libraries(simpleDemo ${PCL_LIBRARIES})
 ENDIF(BUILD_EXAMPLES)
 
+IF(BUILD_TESTS)
+    add_executable(singleCameraViewer ${PROJECT_SOURCE_DIR}/test/singleCameraViewer.cpp)
+    target_link_libraries(singleCameraViewer ${PCL_LIBRARIES})
+
+    add_executable(multiCameraViewer ${PROJECT_SOURCE_DIR}/test/multiCameraViewer.cpp)
+    target_link_libraries(multiCameraViewer ${PCL_LIBRARIES})
+ENDIF(BUILD_TESTS)
 
 

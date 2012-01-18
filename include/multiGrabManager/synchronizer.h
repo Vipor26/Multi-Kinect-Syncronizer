@@ -112,7 +112,8 @@ namespace unr_rgbd {
       vector<Duration> interMessageBounds_;
 
       // Signal stuff
-      boost::signals2::signal<void ( vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& )> mainSignal_;
+      boost::signals2::signal<void ( vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& )> 
+                                                                            mainSignal_;
       boost::signals2::connection mainConnection_;
 
       // Private Member Variables
@@ -139,9 +140,15 @@ namespace unr_rgbd {
       void dequeDeleteFront( unsigned i);
       void dequeMoveFrontToPast( unsigned i);
       void makeCandidate();
-      void recover( unsigned i , size_t numMessages );  // moves numMessages from the i'th past vector to the i'th deque
-      void recover( unsigned i ); // moves everything from the i'th past vector to the i'th deque
-      void recoverAndDelete( unsigned i ); //moves everthing from the past vector to the deque, and pop's the form of the deque
+
+      // moves numMessages from the i'th past vector to the i'th deque
+      void recover( unsigned i , size_t numMessages );
+
+      // moves everything from the i'th past vector to the i'th deque
+      void recover( unsigned i ); 
+
+      //moves everthing from the past vector to the deque, and pop's the form of the deque
+      void recoverAndDelete( unsigned i ); 
       void publishCandidate();
       void getCandidateStart( unsigned *startIndex, TimeStamp *startTime ) {
         return getCandidateBoundary( startIndex, startTime, false );

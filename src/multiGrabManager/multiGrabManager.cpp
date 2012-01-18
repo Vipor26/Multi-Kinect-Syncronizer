@@ -82,6 +82,7 @@ namespace unr_rgbd {
       unsigned j, sj;
       unsigned numberStreams;
 
+      /*
       // If user did not specify camera connect to all
       if( serial_list.size() == 0 ) { // empty so use all
         serial_list = connectedSerialList;
@@ -109,6 +110,9 @@ namespace unr_rgbd {
         }
         // is a subset continue
       }
+      */
+      
+      numberStreams = serial_list.size();
 
       // Clean up
       if( Cameras_.empty() == false ) {
@@ -121,26 +125,22 @@ namespace unr_rgbd {
       for( unsigned i=0; i<numberStreams; i++ )
         {
           //boost::shared_ptr<pcl::Grabber> deviceGrabber;
-          boost::shared_ptr<openni_wrapper::OpenNIDevice> device;
+          //boost::shared_ptr<openni_wrapper::OpenNIDevice> device;
 
           
           boost::function<void(std::string&, boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB> >&)> func;
           std::string serialName;
 
-          device = driver_.getDeviceBySerialNumber(serial_list[i]);
+          //device = driver_.getDeviceBySerialNumber(serial_list[i]);
           
           //get the serial name of this device;
           serialName = serial_list[i];
           func = boost::bind( &MultiGrabberManager::cameraCallback, this, _1, _2 );
 
           //make sure the device was found
-          if( device == NULL )
-          {
-            //device could not be found by that serial number
-          }
-          // TODO change camera initalize to take
-
           
+
+          std::cout << "Connecting to " << serialName << std::endl;
           boost::shared_ptr<pcl::OpenNIGrabber> deviceGrabber( new pcl::OpenNIGrabber(serialName) );
 
           Cameras_[i].initalize( deviceGrabber, serialName, func);

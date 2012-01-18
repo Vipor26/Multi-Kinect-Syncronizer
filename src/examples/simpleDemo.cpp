@@ -34,21 +34,18 @@
 #include <string>
 #include <utility>
 
-using std::cout;
-using std::endl;
+using std::iostream;
 using std::vector;
 using std::string;
 using std::pair;
 
 // PCL includes
-#include <pcl/point_cloud.h> // point cloud
-#include <pcl/point_types.h> // point type RGBXYZ
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 #include <pcl/io/openni_grabber.h> // for devices
 #include <pcl/io/openni_camera/openni_driver.h> // for driver
-//#include <pcl/visualization/pcl_visualizer.h> // for getting visalizers
-//#include <pcl/common/synchronizer.h> // for syncronizing streams
-
-#include "camera.h"
+#include <pcl/visualization/pcl_visualizer.h> // for getting visalizers
+#include <pcl/common/synchronizer.h> // for syncronizing streams
 
 int main()
 {
@@ -89,8 +86,6 @@ int main()
 
         devices.push_back( tempDevice );
       }
-
-      cout << "\tCompleted" << endl << endl;
     }
   }
   catch( ... )  {
@@ -111,7 +106,6 @@ int main()
     }
   devices.clear();
 
-  cout << endl;
   cout << "Ending test, come back soon :)" << endl;
   cout << endl;
   return EXIT_SUCCESS;

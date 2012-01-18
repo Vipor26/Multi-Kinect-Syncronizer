@@ -75,8 +75,10 @@ namespace unr_rgbd {
       */
       serialNumber_ = serialNumber;
 
+      std::cout << "reg" << std::endl;
       camSignalConnection_ = device_->registerCallback( camerafunction_ );
       
+      std::cout << "reg" << std::endl;
       managerfunction_ = f;
       managerSignalConnection_.connect( managerfunction_ );
     }
@@ -112,7 +114,7 @@ namespace unr_rgbd {
     void Camera::stop() {
       device_->stop();
     }
-
+                                //const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGB> >&
     void Camera::cameraCallBack ( const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud )
     {
       managerSignalConnection_( serialNumber_, cloud );

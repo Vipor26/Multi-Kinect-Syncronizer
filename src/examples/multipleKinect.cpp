@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <string>
 using namespace std;
@@ -82,7 +83,6 @@ int main( int argc, char ** atgv )
 	
 	vector<string> connectedCameras = masterInterface.getAvailableSerialNumbers();
 
-
 	cout << "The Connected Cameras Serial Numbers are ..." << endl;
 	if( connectedCameras.size() == 0 )
 	{
@@ -96,10 +96,14 @@ int main( int argc, char ** atgv )
 		cout << "\tCamera " << i << ": " << connectedCameras[i] << endl;
 	}
 
+  cout << " Binding masterInterface callback ..." << endl;
   masterInterface.registerCallback( boost::bind( &multiKinectCB, _1 ) );
 
-	masterInterface.connect();
+  cout << " Connecting to cameras ..." << endl;
+	masterInterface.connect(connectedCameras);
 
+
+  cout << " Starting ..." << endl;
   masterInterface.startSelected();
 
 
